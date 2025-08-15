@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.state;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
 
@@ -17,4 +18,8 @@ public class NextSession {
     private final Map<Snowflake, PlayerResponse> playerResponses = new HashMap<>();
     private final ZonedDateTime proposedStartTime;
     private ZonedDateTime startTime;
+
+    public boolean allPlayersResponded() {
+        return playerResponses.size() == numberOfPlayers;
+    }
 }

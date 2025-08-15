@@ -1,4 +1,4 @@
-package com.github.milomarten.taisha_rangers2.bot;
+package com.github.milomarten.taisha_rangers2.bot.listener;
 
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;

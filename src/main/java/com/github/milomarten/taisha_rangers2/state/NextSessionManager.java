@@ -66,8 +66,15 @@ public class NextSessionManager {
                 .subscribe();
     }
 
+    public Optional<NextSession> getNextSession(Snowflake id) {
+        return Optional.ofNullable(this.nextSessions.get(id));
+    }
+
     public void createSession(Snowflake channel, Snowflake ping, int numPlayers, ZonedDateTime proposedStart) {
         var session = new NextSession(channel, ping, numPlayers, proposedStart);
+        if (this.nextSessions.containsKey(channel)) {
+            this.listeners.forEach(c -> c.onDelete(channel));
+        }
         this.nextSessions.put(channel, session);
         this.listeners.forEach(c -> c.onCreate(session));
 

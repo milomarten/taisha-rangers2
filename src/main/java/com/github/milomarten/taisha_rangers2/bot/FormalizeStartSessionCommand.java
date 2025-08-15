@@ -9,6 +9,7 @@ import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
+import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -40,7 +41,7 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
         var worked = manager.setSessionDate(params.channelId, params.estimatedStart);
         if (worked) {
             return CommandResponse.reply("Alright! Session will officially start at "
-                    + params.estimatedStart + ".", false);
+                    + FormatUtils.formatShortDateTime(params.estimatedStart) + "!", false);
         } else {
             return CommandResponse.reply("No session???", true);
         }
