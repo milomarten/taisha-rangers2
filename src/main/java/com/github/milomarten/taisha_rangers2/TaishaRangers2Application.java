@@ -1,0 +1,13 @@
+package com.github.milomarten.taisha_rangers2;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class TaishaRangers2Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(TaishaRangers2Application.class, args);
+	}
+
+}

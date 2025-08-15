@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: taisha-rangers2
+
+persistence:
+  session-manager:
+    base-path: 'M:\Code\taisha-rangers2'

@@ -1,0 +1,119 @@
+package com.github.milomarten.taisha_rangers2.state;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.milomarten.taisha_rangers2.exception.NoSessionException;
+import com.github.milomarten.taisha_rangers2.exception.TooManyPlayers;
+import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
+import com.github.milomarten.taisha_rangers2.persistence.NoOpPersister;
+import com.github.milomarten.taisha_rangers2.persistence.Persister;
+import discord4j.common.util.Snowflake;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+@Component
+@Slf4j
+public class NextSessionManager {
+    private static final String KEY = "session";
+
+    private final Map<Snowflake, NextSession> nextSessions = Collections.synchronizedMap(new HashMap<>());
+    private final Persister persister;
+    private final List<NextSessionListener> listeners;
+
+//    @Autowired
+    public NextSessionManager(
+            @Value("${persistence.session-manager.base-path}") String path,
+            ObjectMapper om,
+            List<NextSessionListener> listeners) {
+        this.persister = new JsonFilePersister(path, om);
+        this.listeners = listeners;
+    }
+
+    @Autowired
+    public NextSessionManager(List<NextSessionListener> listeners) {
+        this.persister = new NoOpPersister();
+        this.listeners = listeners;
+    }
+
+    @PostConstruct
+    public void init() {
+        this.persister.load(KEY, Map.class)
+                .doOnSuccess(n -> {
+                    if (n != null) {
+                        this.nextSessions.putAll(n);
+                    }
+                    this.nextSessions.values()
+                            .forEach(ns ->
+                                    this.listeners.forEach(nsl -> nsl.onLoad(ns)));
+                })
+                .block();
+    }
+
+    private void persist() {
+        this.persister.persist(KEY, this.nextSessions)
+                .onErrorResume(ex -> {
+                    log.error("Error persisting session", ex);
+                    return Mono.empty();
+                })
+                .subscribe();
+    }
+
+    public void createSession(Snowflake channel, Snowflake ping, int numPlayers, ZonedDateTime proposedStart) {
+        var session = new NextSession(channel, ping, numPlayers, proposedStart);
+        this.nextSessions.put(channel, session);
+        this.listeners.forEach(c -> c.onCreate(session));
+
+        persist();
+    }
+
+    public boolean setSessionDate(Snowflake channel, ZonedDateTime date) {
+        return update(channel, s -> s.setStartTime(date));
+    }
+
+    public boolean cancelSession(Snowflake channel) {
+        var worked = this.nextSessions.remove(channel) != null;
+        if (worked) {
+            this.listeners.forEach(c -> c.onDelete(channel));
+
+            persist();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean playerDo(Snowflake channel, Snowflake player, BiConsumer<NextSession, PlayerResponse> action) {
+        return update(channel, s -> {
+            var response = s.getPlayerResponses().get(player);
+            if (response != null) {
+                action.accept(s, response);
+            } else if (s.getPlayerResponses().size() < s.getNumberOfPlayers()) {
+                var newPlayer = new PlayerResponse(player);
+                action.accept(s, newPlayer);
+                s.getPlayerResponses().put(player, newPlayer);
+            } else {
+                throw new TooManyPlayers(s.getNumberOfPlayers());
+            }
+        });
+    }
+
+    private boolean update(Snowflake channel, Consumer<NextSession> update) {
+        var session = nextSessions.get(channel);
+        if (session == null) {
+            return false;
+        }
+        update.accept(session);
+        listeners.forEach(c -> c.onUpdate(session));
+
+        persist();
+        return true;
+    }
+}
