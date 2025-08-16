@@ -42,7 +42,6 @@ public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMess
             .forEach((snowflake, pr) -> {
                 var playerId = new PlayerId(session.getChannel(), pr.getPlayer());
                 var previousWhenTime = super.getScheduledTime(playerId);
-                log.info("Player {} state {}", playerId, pr.getState());
                 if (pr.getState() == PlayerResponse.State.MAYBE) {
                     var newWhenTime = pr.getAfterTime().toInstant();
                     if (!newWhenTime.equals(previousWhenTime)) {
@@ -52,8 +51,6 @@ public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMess
                                         .ifPresent(ns -> pingPlayerIfNecessary(ns, pr.getPlayer())),
                                 newWhenTime
                         );
-                    } else {
-                        log.info("Change did not affect Player {}'s MAYBE time", playerId);
                     }
                 } else if (previousWhenTime != null) {
                     // Previously said maybe but now says yes/no, so cancel the job
@@ -83,8 +80,6 @@ public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMess
                         return Mono.empty();
                     })
                     .subscribe();
-        } else {
-            log.info("Turns out it wasn't needed to ping this guy after all!");
         }
     }
 

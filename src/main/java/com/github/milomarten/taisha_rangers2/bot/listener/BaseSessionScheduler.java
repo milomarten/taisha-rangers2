@@ -1,12 +1,9 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
-import discord4j.common.util.Snowflake;
-import jakarta.annotation.PostConstruct;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.Map;
@@ -21,18 +18,23 @@ public abstract class BaseSessionScheduler<KEY> {
 
     protected void schedule(KEY flake, Runnable task, Instant when) {
         if (sessions.containsKey(flake)) {
-            log.info("Task {} already exists. Cancelling...", flake);
+            log.info("{} Task {} already exists. Cancelling...", getClass().getSimpleName(), flake);
             sessions.get(flake).cancel();
         }
-        log.info("Scheduling task {} for {} at {}", task, flake, when);
-        sessions.put(flake, new Context(when, taskScheduler.schedule(task, when)));
+        log.info("Scheduling {} task for {} at {}", getClass().getSimpleName(), flake, when);
+        Runnable wrappedTask = () -> {
+            log.info("Starting {} task {}", getClass().getSimpleName(), flake);
+            task.run();
+            sessions.remove(flake);
+        };
+        sessions.put(flake, new Context(when, taskScheduler.schedule(wrappedTask, when)));
     }
 
     protected void cancel(KEY flake) {
         if (sessions.containsKey(flake)) {
             sessions.get(flake).cancel();
             sessions.remove(flake);
-            log.info("Canceling task {}...", flake);
+            log.info("Canceling {} task {}...", getClass().getSimpleName(), flake);
         }
     }
 
@@ -40,7 +42,7 @@ public abstract class BaseSessionScheduler<KEY> {
         var initSize = sessions.size();
         sessions.entrySet()
             .removeIf(entry -> predicate.test(entry.getKey()));
-        log.info("Cancelled {} tasks", initSize - sessions.size());
+        log.info("Cancelled {} {} tasks", initSize - sessions.size(), getClass().getSimpleName());
     }
 
     protected Instant getScheduledTime(KEY flake) {
