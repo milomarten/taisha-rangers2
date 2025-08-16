@@ -26,4 +26,11 @@ public class NextSession {
                 .filter(pr -> pr.getState() != PlayerResponse.State.MAYBE)
                 .count() == numberOfPlayers;
     }
+
+    public boolean allPlayersRespondedYes() {
+        return playerResponses.values()
+                .stream()
+                .filter(pr -> pr.getState() == PlayerResponse.State.YES)
+                .count() == numberOfPlayers;
+    }
 }

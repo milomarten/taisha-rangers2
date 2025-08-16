@@ -18,6 +18,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Component
 @Slf4j
@@ -84,6 +85,10 @@ public class NextSessionManager {
 
     public boolean setSessionDate(Snowflake channel, ZonedDateTime date) {
         return update(channel, s -> s.setStartTime(date));
+    }
+
+    public boolean setSessionDate(Snowflake channel, Function<NextSession, ZonedDateTime> function) {
+        return update(channel, ns -> ns.setStartTime(function.apply(ns)));
     }
 
     public boolean cancelSession(Snowflake channel) {
