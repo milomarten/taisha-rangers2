@@ -8,20 +8,19 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.ZonedDateTime;
 
-@ConditionalOnBean(GatewayDiscordClient.class)
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
-    private final NextSessionManager sessionManager;
+    @Setter private NextSessionManager nextSessionManager;
 
     @Override
     public void onLoad(NextSession nextSession) {
@@ -37,7 +36,7 @@ public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> imple
         var now = ZonedDateTime.now();
         if (firstPingDate.isAfter(now)) {
             schedule(session.getChannel(),
-                    () -> sessionManager.getNextSession(session.getChannel()).ifPresent(this::doPlayerPingIfNecessary),
+                    () -> nextSessionManager.getNextSession(session.getChannel()).ifPresent(this::doPlayerPingIfNecessary),
                     firstPingDate.toInstant());
             log.info("Scheduled gentle reminder for {} at {}", session.getChannel(), firstPingDate);
         } else {

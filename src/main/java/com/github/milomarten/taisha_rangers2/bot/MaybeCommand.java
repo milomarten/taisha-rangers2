@@ -1,0 +1,73 @@
+package com.github.milomarten.taisha_rangers2.bot;
+
+import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.PojoParameterParser;
+import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
+import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
+import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
+import com.github.milomarten.taisha_rangers2.util.FormatUtils;
+import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.User;
+import lombok.Data;
+import org.springframework.stereotype.Component;
+
+import java.time.ZonedDateTime;
+
+@Component("maybe")
+public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
+    private final NextSessionManager nextSessionManager;
+
+    public MaybeCommand(NextSessionManager nextSessionManager) {
+        super("maybe", "Indicate that you need to wait a bit before knowing if you can join session");
+        this.nextSessionManager = nextSessionManager;
+
+        setParameterParser(new PojoParameterParser<>(Parameters::new)
+                .withInteractionField(PojoParameterParser.channelId(Parameters::setChannelId))
+                .withInteractionField(PojoParameterParser.user(Parameters::setUser))
+                .withParameterField(
+                        "hours",
+                        "I'll send a message to you in this many hours to remind you",
+                        IntParameter.builder().minValue(1).maxValue(48).build(),
+                        Parameters::setHoursFromNow
+                )
+        );
+    }
+
+    @Override
+    public CommandResponse doAction(Parameters params) {
+        // kill me
+        ZonedDateTime[] time = new ZonedDateTime[1];
+
+        var worked = nextSessionManager.playerDo(
+                params.channelId,
+                params.user.getId(),
+                (session, pr) -> {
+                    var reminderTime = ZonedDateTime.now().plusHours(params.hoursFromNow);
+                    if (reminderTime.isBefore(session.getProposedStartTime())) {
+                        pr.maybe(reminderTime);
+                        time[0] = reminderTime;
+                    }
+                }
+        );
+
+        if (worked) {
+            if (time[0] == null) {
+                var text = "That reminder would come too late. We need your answer sooner than that!";
+                return CommandResponse.reply(text, true);
+            } else {
+                var text = String.format("%s may be able to come. I'll check back with them at %s",
+                        params.user.getUsername(), FormatUtils.formatShortDateTime(time[0]));
+                return CommandResponse.reply(text, false);
+            }
+        } else {
+            return CommandResponse.reply("No session???", true);
+        }
+    }
+
+    @Data
+    public static class Parameters {
+        private Snowflake channelId;
+        private User user;
+        private int hoursFromNow;
+    }
+}

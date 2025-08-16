@@ -20,55 +20,55 @@ class DateUtilTest {
 
     @Test
     public void testYMD() {
-        var zdt = DateUtil.parseCasualDate("2025-08-13");
+        var zdt = DateUtil.parseCasualDateTime("2025-08-13");
         assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testYM_ParseIsThisYear() {
-        var zdt = DateUtil.parseCasualDate("08-13", makeClock(8, 1));
+        var zdt = DateUtil.parseCasualDateTime("08-13", makeClock(8, 1));
         assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testYM_ParseIsNextYear() {
-        var zdt = DateUtil.parseCasualDate("08-13", makeClock(9, 1));
+        var zdt = DateUtil.parseCasualDateTime("08-13", makeClock(9, 1));
         assertEquals("2026-08-13T20:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testYM_ParseIsToday() {
-        var zdt = DateUtil.parseCasualDate("08-13", makeClock(8, 13));
+        var zdt = DateUtil.parseCasualDateTime("08-13", makeClock(8, 13));
         assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testDayTimeNoSeconds() {
-        var zdt = DateUtil.parseCasualDate("2025-08-13 20:00");
+        var zdt = DateUtil.parseCasualDateTime("2025-08-13 20:00");
         assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testDayTimeWithSeconds() {
-        var zdt = DateUtil.parseCasualDate("2025-08-13 20:00:00");
+        var zdt = DateUtil.parseCasualDateTime("2025-08-13 20:00:00");
         assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testDayTimeTimezoneNoSeconds() {
-        var zdt = DateUtil.parseCasualDate("2025-08-13 20:00,America/New_York");
+        var zdt = DateUtil.parseCasualDateTime("2025-08-13 20:00,America/New_York");
         assertEquals("2025-08-13T20:00-04:00[America/New_York]", zdt.toString());
     }
 
     @Test
     public void testDayTimeTimezoneSeconds() {
-        var zdt = DateUtil.parseCasualDate("2025-08-13 20:00:00,America/New_York");
+        var zdt = DateUtil.parseCasualDateTime("2025-08-13 20:00:00,America/New_York");
         assertEquals("2025-08-13T20:00-04:00[America/New_York]", zdt.toString());
     }
 
     @Test
     public void testDayTimeCasualTimezoneNoSeconds() {
-        var zdt = DateUtil.parseCasualDate("2025-08-13 20:00,MST");
+        var zdt = DateUtil.parseCasualDateTime("2025-08-13 20:00,MST");
         assertEquals("2025-08-13T20:00-06:00[America/Denver]", zdt.toString());
     }
 

@@ -26,6 +26,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         this.manager = manager;
         setParameterParser(new PojoParameterParser<>(Parameters::new)
                 .withInteractionField(PojoParameterParser.channelId(Parameters::setChannelId))
+                .withInteractionField(PojoParameterParser.userId(Parameters::setGm))
                 .withParameterField(
                         "number-of-players",
                         "The number of players in the session. Default: 4",
@@ -35,7 +36,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                 .withParameterField(
                         "proposed-start-time",
                         "The proposed start time for session.",
-                        StringParameter.REQUIRED.map(DateUtil::parseCasualDate),
+                        StringParameter.REQUIRED.map(DateUtil::parseCasualDateTime),
                         Parameters::setProposedStart
                 )
                 .withParameterField(
@@ -56,6 +57,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         manager.createSession(
                 params.channelId,
                 params.ping,
+                params.gm,
                 params.numPlayers,
                 params.proposedStart
         );
@@ -70,6 +72,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
     public static class Parameters {
         private Snowflake channelId;
         private Snowflake ping;
+        private Snowflake gm;
         private int numPlayers;
         private ZonedDateTime proposedStart;
     }

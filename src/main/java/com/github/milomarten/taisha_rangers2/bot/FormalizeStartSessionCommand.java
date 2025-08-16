@@ -3,8 +3,6 @@ package com.github.milomarten.taisha_rangers2.bot;
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
 import com.github.milomarten.taisha_rangers2.command.PojoParameterParser;
-import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
-import com.github.milomarten.taisha_rangers2.command.parameter.SnowflakeParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
@@ -29,7 +27,7 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
                 .withParameterField(
                         "start-time",
                         "The formal start time for session.",
-                        StringParameter.REQUIRED.map(DateUtil::parseCasualDate),
+                        StringParameter.REQUIRED.map(DateUtil::parseCasualDateTime),
                         Parameters::setEstimatedStart
                 )
         );

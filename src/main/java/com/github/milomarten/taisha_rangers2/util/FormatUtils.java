@@ -1,11 +1,16 @@
 package com.github.milomarten.taisha_rangers2.util;
 
 import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.User;
 
 import java.time.Instant;
 import java.time.temporal.TemporalAccessor;
 
 public class FormatUtils {
+    public static String pingUser(Snowflake id) {
+        return "<@" + id.asString() + ">";
+    }
+
     public static String pingRole(Snowflake id) {
         return "<@&" + id.asString() + ">";
     }

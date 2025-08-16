@@ -28,11 +28,11 @@ public class DateUtil {
         OVERRIDES.put("PDT", ZoneId.of("America/Los_Angeles"));
     }
 
-    public static ZonedDateTime parseCasualDate(String value) {
-        return parseCasualDate(value, Clock.system(CENTRAL_TIME));
+    public static ZonedDateTime parseCasualDateTime(String value) {
+        return parseCasualDateTime(value, Clock.system(CENTRAL_TIME));
     }
 
-    public static ZonedDateTime parseCasualDate(String value, Clock clock) {
+    public static ZonedDateTime parseCasualDateTime(String value, Clock clock) {
         if (value.length() == 10) {
             // 2025-08-13. Assume default time and Central
             return LocalDate.parse(value)
