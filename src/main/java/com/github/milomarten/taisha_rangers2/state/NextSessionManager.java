@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.state;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.milomarten.taisha_rangers2.exception.NoSessionException;
 import com.github.milomarten.taisha_rangers2.exception.TooManyPlayers;
@@ -9,6 +10,7 @@ import com.github.milomarten.taisha_rangers2.persistence.Persister;
 import discord4j.common.util.Snowflake;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,32 +26,31 @@ import java.util.function.Function;
 @Slf4j
 public class NextSessionManager {
     private static final String KEY = "session";
+    private static final TypeReference<Map<Snowflake, NextSession>> MAP_TYPE
+            = new TypeReference<Map<Snowflake, NextSession>>() {};
 
     private final Map<Snowflake, NextSession> nextSessions = Collections.synchronizedMap(new HashMap<>());
     private final Persister persister;
     private final List<NextSessionListener> listeners;
 
-//    @Autowired
+    @Autowired
     public NextSessionManager(
-            @Value("${persistence.session-manager.base-path}") String path,
+            @Value("${persistence.session-manager.base-path:}") String path,
             ObjectMapper om,
             List<NextSessionListener> listeners) {
-        this.persister = new JsonFilePersister(path, om);
-        this.listeners = listeners;
-    }
-
-    @Autowired
-    public NextSessionManager(List<NextSessionListener> listeners) {
-        this.persister = new NoOpPersister();
+        this.persister = StringUtils.isEmpty(path) ?
+                new NoOpPersister() :
+                new JsonFilePersister(path, om);
         this.listeners = listeners;
     }
 
     @PostConstruct
     public void init() {
         this.listeners.forEach(nsl -> nsl.setNextSessionManager(this));
-        this.persister.load(KEY, Map.class)
+        this.persister.load(KEY, MAP_TYPE)
                 .doOnSuccess(n -> {
                     if (n != null) {
+                        log.info("Loaded stored next sessions");
                         this.nextSessions.putAll(n);
                     }
                     this.nextSessions.values()

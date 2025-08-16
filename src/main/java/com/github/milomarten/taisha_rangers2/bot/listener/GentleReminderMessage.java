@@ -38,7 +38,6 @@ public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> imple
             schedule(session.getChannel(),
                     () -> nextSessionManager.getNextSession(session.getChannel()).ifPresent(this::doPlayerPingIfNecessary),
                     firstPingDate.toInstant());
-            log.info("Scheduled gentle reminder for {} at {}", session.getChannel(), firstPingDate);
         } else {
             log.info("Too close to scheduled session time, so not scheduling a ping");
         }
