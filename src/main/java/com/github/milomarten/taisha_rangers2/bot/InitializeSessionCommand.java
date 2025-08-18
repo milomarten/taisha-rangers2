@@ -11,6 +11,7 @@ import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
+import discord4j.rest.util.AllowedMentions;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +66,8 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         var pingText = params.ping == null ? "everyone" : FormatUtils.pingRole(params.ping);
         var text = String.format("Hey %s! A session has been scheduled for %s. Let me know if you can join, by typing `/yes` or `/no`!",
                 pingText, FormatUtils.formatShortDateTime(params.proposedStart));
-        return CommandResponse.reply(text, false);
+        return CommandResponse.reply(text, false)
+                .allowedMentions(AllowedMentions.builder().allowRole(params.ping).build());
     }
 
     @Data

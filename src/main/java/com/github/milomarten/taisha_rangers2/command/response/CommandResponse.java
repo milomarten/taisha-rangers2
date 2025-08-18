@@ -6,8 +6,8 @@ import reactor.core.publisher.Mono;
 public interface CommandResponse {
     Mono<?> respond(ChatInputInteractionEvent event);
 
-    static CommandResponse reply(String message, boolean ephemeral) {
-        return event -> event.reply(message).withEphemeral(ephemeral);
+    static ReplyResponse reply(String message, boolean ephemeral) {
+        return new ReplyResponse(message).ephemeral(ephemeral);
     }
 }
 

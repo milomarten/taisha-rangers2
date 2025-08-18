@@ -8,6 +8,7 @@ import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +74,10 @@ public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMess
                         var text = String.format("Hey %s! Just reminding you to register `/yes` or `/no` for session. It's scheduled for %s!",
                                 FormatUtils.pingUser(playerId),
                                 FormatUtils.formatShortDateTime(session.getProposedStartTime()));
-                        return tc.createMessage(text);
+                        return tc.createMessage(text)
+                                .withAllowedMentions(AllowedMentions.builder()
+                                        .allowUser(playerId)
+                                        .build());
                     })
                     .onErrorResume(ex -> {
                         log.error("Unable to send maybe ping", ex);

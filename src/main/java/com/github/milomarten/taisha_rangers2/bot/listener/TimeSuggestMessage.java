@@ -6,6 +6,7 @@ import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -53,7 +54,9 @@ public class TimeSuggestMessage implements NextSessionListener {
 
             client.getChannelById(session.getChannel())
                     .cast(TextChannel.class)
-                    .flatMap(tc -> tc.createMessage(FormatUtils.pingUser(session.getGm()) + " The tallies are in! " + message))
+                    .flatMap(tc ->
+                            tc.createMessage(FormatUtils.pingUser(session.getGm()) + " The tallies are in!\n" + message)
+                                    .withAllowedMentions(AllowedMentions.builder().allowUser(session.getGm()).build()))
                     .onErrorResume(ex -> {
                         log.error("Unable to display time message", ex);
                         return Mono.empty();

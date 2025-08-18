@@ -7,6 +7,7 @@ import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +56,12 @@ public class ItsTimeMessage extends BaseSessionScheduler<Snowflake> implements N
 
         client.getChannelById(session.getChannel())
                 .cast(TextChannel.class)
-                .flatMap(tc -> tc.createMessage(message))
+                .flatMap(tc ->
+                        tc.createMessage(message)
+                                .withAllowedMentions(AllowedMentions.builder()
+                                        .allowRole(session.getPing())
+                                        .allowUser(session.getGm())
+                                .build()))
                 .onErrorResume(ex -> {
                     log.error("Unable to announce session", ex);
                     return Mono.empty();
