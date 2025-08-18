@@ -1,0 +1,44 @@
+name: Deploy Docker Image
+
+on:
+  push:
+    tags: 'v*'
+    
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Java JDK
+      uses: actions/setup-java@v3.13.0
+      with:
+        java-version: 21
+        distribution: corretto
+        
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2.8.0
+
+    - name: Execute Gradle build
+      run: ./gradlew build -Ptr2Version=${{ github.ref_name }}
+      
+    - name: Build and Push to Docker
+      run: |
+       docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+       docker image build . --tag jlamanna/taisha_rangers2:latest --tag jlamanna/taisha_rangers2:${{ github.ref_name }}
+       docker image push --all-tags jlamanna/taisha_rangers2
+#  deploy:
+#    needs: ['build']
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: kielabokkie/ssh-key-and-known-hosts-action@v1
+#        name: Create SSH Agent
+#        with:
+#          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          ssh-host: ${{ secrets.SSH_HOST }}
+#      - name: Run SSH Commands
+#        run: |
+#          ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd /root && docker compose up -d fracktail"

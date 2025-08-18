@@ -42,3 +42,22 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.named('jar') {
+    enabled = false
+}
+
+bootJar {
+    version = "local"
+    if (project.hasProperty("tr2Version")) {
+        version = project.property("tr2Version")
+    }
+    manifest {
+        attributes 'Specification-Title': 'Taisha-Rangers 2'
+        attributes 'Specification-Version': version
+        attributes 'Specification-Vendor': 'Milo Marten'
+        attributes 'Implementation-Title': 'com.github.milomarten.taisha_rangers2'
+        attributes 'Implementation-Version': version
+        attributes 'Implementation-Vendor': 'Milo Marten'
+    }
+}
