@@ -55,7 +55,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
 
     @Override
     public CommandResponse doAction(InitializeSessionCommand.Parameters params) {
-        manager.createSession(
+        var session = manager.createSession(
                 params.channelId,
                 params.ping,
                 params.gm,
@@ -63,11 +63,18 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                 params.proposedStart
         );
 
-        var pingText = params.ping == null ? "everyone" : FormatUtils.pingRole(params.ping);
-        var text = String.format("Hey %s! A session has been scheduled for %s. Let me know if you can join, by typing `/yes` or `/no`!",
-                pingText, FormatUtils.formatShortDateTime(params.proposedStart));
-        return CommandResponse.reply(text, false)
-                .allowedMentions(AllowedMentions.builder().allowRole(params.ping).build());
+        if (session.isFarOffSession()) {
+            var pingText = params.ping == null ? "everyone" : FormatUtils.pingRole(params.ping);
+            var text = String.format("Hey %s! A session has been scheduled for %s. Let me know if you can join, by typing `/yes` or `/no`!",
+                    pingText, FormatUtils.formatShortDateTime(params.proposedStart));
+            return CommandResponse.reply(text, false)
+                    .allowedMentions(AllowedMentions.builder().allowRole(params.ping).build());
+        } else {
+            return CommandResponse.reply(
+                    String.format("Scheduled a session for %s. It's a ways off, so I'll announce it closer to time", FormatUtils.formatShortDateTime(params.proposedStart)),
+                    true
+            );
+        }
     }
 
     @Data

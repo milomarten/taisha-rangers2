@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
 
+import java.time.Duration;
+import java.time.Period;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 public class NextSession {
+    private static final int HOURS_BEFORE_SESSION_TO_ANNOUNCE = 24 * 7;
+
     private final Snowflake channel;
     private final Snowflake ping;
     private final Snowflake gm;
@@ -32,5 +33,18 @@ public class NextSession {
                 .stream()
                 .filter(pr -> pr.getState() == PlayerResponse.State.YES)
                 .count() == numberOfPlayers;
+    }
+
+    @JsonIgnore
+    public boolean isFarOffSession() {
+        var now = ZonedDateTime.now();
+        var announcementTime = getAnnouncementTime();
+
+        return now.isBefore(announcementTime);
+    }
+
+    @JsonIgnore
+    public ZonedDateTime getAnnouncementTime() {
+        return proposedStartTime.minusHours(HOURS_BEFORE_SESSION_TO_ANNOUNCE);
     }
 }

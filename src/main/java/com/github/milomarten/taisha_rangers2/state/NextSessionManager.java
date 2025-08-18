@@ -73,7 +73,7 @@ public class NextSessionManager {
         return Optional.ofNullable(this.nextSessions.get(id));
     }
 
-    public void createSession(Snowflake channel, Snowflake ping, Snowflake gm, int numPlayers, ZonedDateTime proposedStart) {
+    public NextSession createSession(Snowflake channel, Snowflake ping, Snowflake gm, int numPlayers, ZonedDateTime proposedStart) {
         var session = new NextSession(channel, ping, gm, numPlayers, proposedStart);
         if (this.nextSessions.containsKey(channel)) {
             this.listeners.forEach(c -> c.onDelete(channel));
@@ -82,6 +82,8 @@ public class NextSessionManager {
         this.listeners.forEach(c -> c.onCreate(session));
 
         persist();
+
+        return session;
     }
 
     public boolean setSessionDate(Snowflake channel, ZonedDateTime date) {

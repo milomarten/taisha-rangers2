@@ -14,7 +14,7 @@ public class SnowflakeParameter implements ParameterInfo<Snowflake> {
     public static final SnowflakeParameter REQUIRED =
             SnowflakeParameter.builder().build();
 
-    private final SnowflakeType type;
+    private SnowflakeType type;
     private Snowflake defaultValue;
 
     @Override
