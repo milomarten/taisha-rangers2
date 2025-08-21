@@ -11,9 +11,6 @@ import java.util.Optional;
 
 @Builder
 public class SnowflakeParameter implements ParameterInfo<Snowflake> {
-    public static final SnowflakeParameter REQUIRED =
-            SnowflakeParameter.builder().build();
-
     private SnowflakeType type;
     private Snowflake defaultValue;
 

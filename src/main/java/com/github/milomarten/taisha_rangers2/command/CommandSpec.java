@@ -1,5 +1,7 @@
 package com.github.milomarten.taisha_rangers2.command;
 
+import com.github.milomarten.taisha_rangers2.command.parameters.NoParameterParser;
+import com.github.milomarten.taisha_rangers2.command.parameters.ParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -16,7 +18,8 @@ import java.util.Set;
 public abstract class CommandSpec<PARAM> implements CommandHandler {
     private final String name;
     private final String description;
-    @Setter ParameterParser<PARAM> parameterParser = NoParameterParser.create();
+    @Setter
+    ParameterParser<PARAM> parameterParser = NoParameterParser.create();
     @Setter Set<CommandPermission> permissions = Set.of();
 
     public ApplicationCommandRequest toDiscordSpec() {

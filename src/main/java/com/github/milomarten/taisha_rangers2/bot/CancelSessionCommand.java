@@ -2,7 +2,7 @@ package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import com.github.milomarten.taisha_rangers2.command.OneNonParameterParser;
+import com.github.milomarten.taisha_rangers2.command.parameters.OneNonParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import discord4j.common.util.Snowflake;

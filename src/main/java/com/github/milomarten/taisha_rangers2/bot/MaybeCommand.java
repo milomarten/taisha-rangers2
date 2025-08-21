@@ -1,7 +1,7 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import com.github.milomarten.taisha_rangers2.command.PojoParameterParser;
+import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;

@@ -1,4 +1,4 @@
-package com.github.milomarten.taisha_rangers2.command;
+package com.github.milomarten.taisha_rangers2.command.parameters;
 
 import com.github.milomarten.taisha_rangers2.command.parameter.ParameterInfo;
 import discord4j.common.util.Snowflake;
@@ -6,10 +6,7 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.possible.Possible;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.Comparator;

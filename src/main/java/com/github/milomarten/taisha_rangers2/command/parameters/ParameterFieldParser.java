@@ -1,8 +1,7 @@
-package com.github.milomarten.taisha_rangers2.command;
+package com.github.milomarten.taisha_rangers2.command.parameters;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.BiConsumer;

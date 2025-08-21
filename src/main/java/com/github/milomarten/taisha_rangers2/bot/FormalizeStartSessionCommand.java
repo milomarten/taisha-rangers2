@@ -2,17 +2,15 @@ package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import com.github.milomarten.taisha_rangers2.command.PojoParameterParser;
+import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
-import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
