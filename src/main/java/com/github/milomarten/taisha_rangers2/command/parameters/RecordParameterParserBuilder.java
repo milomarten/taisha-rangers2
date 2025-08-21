@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameters;
 
+import com.github.milomarten.taisha_rangers2.command.parameter.ParameterInfo;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import lombok.RequiredArgsConstructor;
@@ -11,10 +12,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public abstract class RecordParameterParserBuilder<PARAM, CONSTRUCTOR> {
-    public static <PARAM, A> One<PARAM, A> create(ParameterParser<A> one) {
-        return new One<>(one);
-    }
-
     public abstract ParameterParser<PARAM> build(CONSTRUCTOR constructor);
 
     @RequiredArgsConstructor
@@ -23,6 +20,14 @@ public abstract class RecordParameterParserBuilder<PARAM, CONSTRUCTOR> {
 
         public <B> Two<PARAM, A, B> and(ParameterParser<B> other) {
             return new Two<>(one, other);
+        }
+
+        public <B> Two<PARAM, A, B> and(String name, String desc, ParameterInfo<B> parameterInfo) {
+            return and(new OneParameterParser<>(name, desc, parameterInfo));
+        }
+
+        public <B> Two<PARAM, A, B> and(Function<ChatInputInteractionEvent, B> func) {
+            return and(new OneNonParameterParser<>(func));
         }
 
         @Override
@@ -50,6 +55,14 @@ public abstract class RecordParameterParserBuilder<PARAM, CONSTRUCTOR> {
 
         public N<PARAM> and(ParameterParser<?> other) {
             return new N<>(List.of(one, two, other));
+        }
+
+        public N<PARAM> and(String name, String desc, ParameterInfo<?> parameterInfo) {
+            return and(new OneParameterParser<>(name, desc, parameterInfo));
+        }
+
+        public N<PARAM> and(Function<ChatInputInteractionEvent, ?> func) {
+            return and(new OneNonParameterParser<>(func));
         }
 
         @Override
