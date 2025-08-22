@@ -26,7 +26,7 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
         super("set-start", "Formalize the official start time of session");
         this.manager = manager;
         setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withInteractionField(PojoParameterParser.channelId(Parameters::setChannelId))
+                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
                 .withParameterField(
                         "start-time",
                         "The formal start time for session.",

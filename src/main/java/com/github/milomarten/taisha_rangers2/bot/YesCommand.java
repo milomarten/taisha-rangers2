@@ -8,6 +8,7 @@ import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -26,8 +27,8 @@ public class YesCommand extends CommandSpec<YesCommand.Parameters> {
         this.nextSessionManager = nextSessionManager;
 
         this.setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withInteractionField(PojoParameterParser.user(Parameters::setUser))
-                .withInteractionField(PojoParameterParser.channelId(Parameters::setChannel))
+                .withParameterField(ChatInputInteractionEvent::getUser, Parameters::setUser)
+                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannel)
                 .withParameterField(
                         "after-time",
                         "Indicate that session must start after this time for you to attend. Default: whenever",

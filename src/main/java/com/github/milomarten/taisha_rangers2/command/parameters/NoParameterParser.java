@@ -6,6 +6,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * A ParameterParser for a command with no parameters
+ * All calls to `parse()` return null, and `toDiscordSpec()` returns an empty list
+ * @param <T> The "type" parsed from the command. Can be anything, to allow for generics
+ */
 @NoArgsConstructor(staticName = "create")
 public class NoParameterParser<T> implements ParameterParser<T> {
     @Override

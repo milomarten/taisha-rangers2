@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 @RequiredArgsConstructor
-public class PojoSetterParser<PARAM, FIELD> {
+class PojoSetterParser<PARAM, FIELD> {
     private final ParameterParser<FIELD> parameter;
     private final BiConsumer<PARAM, FIELD> setter;
 

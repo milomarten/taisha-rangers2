@@ -5,6 +5,7 @@ import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterPar
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -18,8 +19,8 @@ public class NoCommand extends CommandSpec<NoCommand.Parameters> {
         this.nextSessionManager = nextSessionManager;
 
         this.setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withInteractionField(PojoParameterParser.user(Parameters::setUser))
-                .withInteractionField(PojoParameterParser.channelId(Parameters::setChannelId))
+                .withParameterField(ChatInputInteractionEvent::getUser, Parameters::setUser)
+                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
         );
     }
 

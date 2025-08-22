@@ -26,8 +26,8 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         super("init", "Create an upcoming session");
         this.manager = manager;
         setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withInteractionField(PojoParameterParser.channelId(Parameters::setChannelId))
-                .withInteractionField(PojoParameterParser.userId(Parameters::setGm))
+                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
+                .withParameterField(PojoParameterParser.userId(), Parameters::setGm)
                 .withParameterField(
                         "number-of-players",
                         "The number of players in the session. Default: 4",

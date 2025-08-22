@@ -7,6 +7,7 @@ import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -22,8 +23,8 @@ public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
         this.nextSessionManager = nextSessionManager;
 
         setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withInteractionField(PojoParameterParser.channelId(Parameters::setChannelId))
-                .withInteractionField(PojoParameterParser.user(Parameters::setUser))
+                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
+                .withParameterField(ChatInputInteractionEvent::getUser, Parameters::setUser)
                 .withParameterField(
                         "hours",
                         "I'll send a message to you in this many hours to remind you",

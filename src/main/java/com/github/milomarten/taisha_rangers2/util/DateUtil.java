@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Various utilities for handling dates via commands
+ */
 public class DateUtil {
     private static final ZoneId CENTRAL_TIME = ZoneId.of("America/Chicago");
     private static final LocalTime DEFAULT_TIME = LocalTime.of(20, 0);
@@ -28,10 +31,32 @@ public class DateUtil {
         OVERRIDES.put("PDT", ZoneId.of("America/Los_Angeles"));
     }
 
+    /**
+     * Parse a date time from a number of permissible formats:
+     * - YYYY-MM-DD -> YYYY-MM-DDT20:00:00, using Chicago Time at that moment.
+     * - MM-DD -> [computed year]-MM-DDT20:00:00, using Chicago Time at that moment. If
+     * the input date is after the current date, the current year is assumed; otherwise, it is next year. Examples:
+     *  - Input: 08-15, Today: 2025-08-01 -> Year is 2025 (since Aug 15th is after August 1st)
+     *  - Input: 01-02, Today: 2025-12-25 -> Year is 2026 (since Jan 2nd is before December 25th, when not taking years into account)
+     * - YYYY-MM-DD HH:MM -> YYYY-MM-DDTHH:MM:00, using Chicago Time at that moment.
+     * - YYYY-MM-DD HH:MM:SS -> YYYY-MM-DDTHH:MM:SS, using Chicago Time at that moment.
+     * - YYYY-MM-DD HH:MM,CST -> YYYY-MM-DDTHH:MM:00, using the timezone provided after the comma. This can be anything parsed by parseCasualTimezone()
+     * - 2025-08-13T08:00-05:00 -> Fully formed date and time, no changes
+     * - 2025-08-13T08:00-05:00[America/Chicago] -> Fully formed date and time, no changes
+     * @param value The string to parse
+     * @return The parsed ZonedDateTime
+     */
     public static ZonedDateTime parseCasualDateTime(String value) {
         return parseCasualDateTime(value, Clock.system(CENTRAL_TIME));
     }
 
+    /**
+     * See parseCasualDateTime
+     * Provided Clock argument for test case support
+     * @param value The value to parse
+     * @param clock The clock to use, to allow test cases to hard-code "now"
+     * @return The parsed ZonedDateTime
+     */
     public static ZonedDateTime parseCasualDateTime(String value, Clock clock) {
         if (value.length() == 10) {
             // 2025-08-13. Assume default time and Central
@@ -79,10 +104,37 @@ public class DateUtil {
         }
     }
 
+    /**
+     * Parse a timezone in a few different formats:
+     * - Any tzid is supported, i.e. America/Chicago
+     * - timezones of EST, EDT, or ET all map to America/New_York
+     * - timezones of CST, CDT, or CT all map to America/Chicago
+     * - timezones of MST, MDT, or MT all map to America/Denver
+     * - timezones of PST, PDT, or PT all map to America/Los_Angeles
+     * There is no enforcement of if you are using Standard or Daylight time correctly. Thus,
+     * 8PM EST, 8PM EDT, and 8PM ET all refer to the same Instant, assuming they are all on the same date. This also
+     * means that you should NOT use "MST" if your times should be relative to Arizona. Instead, use America/Phoenix.
+     * @param value The value to parse
+     * @return The ZoneId parsed
+     */
     public static ZoneId parseCasualTimezone(String value) {
         return Objects.requireNonNullElseGet(OVERRIDES.get(value), () -> ZoneId.of(value));
     }
 
+    /**
+     * Parse a time object in a few different formats:
+     * - 8 PM
+     * - 8p
+     * - 8pm
+     * - 8:00pm
+     * - 8:00 PM
+     * - 8:00p
+     * - 20:00
+     * - 20
+     * All refer to 8pm. There is no parsing of seconds, since it is unnecessary for what I am using this for.
+     * @param value The value to parse
+     * @return The parsed time
+     */
     public static LocalTime parseCasualTime(String value) {
         if (value.isEmpty()) { return null; }
         value = StringUtils.deleteWhitespace(value.toUpperCase());
