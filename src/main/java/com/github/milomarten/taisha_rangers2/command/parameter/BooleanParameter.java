@@ -7,15 +7,30 @@ import lombok.Builder;
 
 import java.util.Optional;
 
+/**
+ * A ParameterInfo which extracts a boolean from the command usage
+ */
 @Builder
 public class BooleanParameter implements ParameterInfo<Boolean> {
+    /**
+     * Standard constant for a required Boolean parameter
+     */
     public static final BooleanParameter REQUIRED =
             BooleanParameter.builder().build();
+    /**
+     * Standard constant for an optional Boolean parameter which defaults to true
+     */
     public static final BooleanParameter DEFAULT_TRUE =
             BooleanParameter.builder().defaultValue(true).build();
+    /**
+     * Standard constant for an optional Boolean parameter which defaults to false
+     */
     public static final BooleanParameter DEFAULT_FALSE =
             BooleanParameter.builder().defaultValue(false).build();
 
+    /**
+     * The default boolean value. If null or unset, the parameter is considered REQUIRED.
+     */
     private Boolean defaultValue;
 
     @Override

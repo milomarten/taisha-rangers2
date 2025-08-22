@@ -9,9 +9,25 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 
+/**
+ * A ParameterInfo which extracts a Snowflake from the command usage.
+ * Discord bots are allowed to accept, as parameters, four different types of Snowflakes:
+ * - User: Must be the ID of a user in the server
+ * - Role: Must be the ID of a role in the server
+ * - Channel: Must be the ID of a channel is the server
+ * - Mentionable: Must be the ID of either a user OR a role in the server
+ * For the sake of the decorator, it is a requirement to specify one of these four options with type.
+ */
 @Builder
 public class SnowflakeParameter implements ParameterInfo<Snowflake> {
+    /**
+     * The type of Snowflake expected
+     * Must be specified. If null, decorate() will throw a NPE
+     */
     private SnowflakeType type;
+    /**
+     * The default Snowflake. If null or unset, the parameter is considered REQUIRED.
+     */
     private Snowflake defaultValue;
 
     @Override

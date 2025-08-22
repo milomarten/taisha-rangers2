@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @RequiredArgsConstructor
@@ -42,19 +43,28 @@ public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
                 .toList();
     }
 
-    public PojoParameterParser<PARAM> withInteractionField(BiConsumer<ChatInputInteractionEvent, PARAM> field) {
+    @Deprecated
+    public PojoParameterParser<PARAM> withInteractionField(
+            BiConsumer<ChatInputInteractionEvent, PARAM> field) {
         this.fieldsFromInteractions.add(field);
         return this;
     }
 
     public <FIELD> PojoParameterParser<PARAM> withParameterField(
+            Function<ChatInputInteractionEvent, FIELD> extract,
+            BiConsumer<PARAM, FIELD> setter) {
+        return withParameterField(
+                new OneNonParameterParser<>(extract),
+                setter
+        );
+    }
+
+    public <FIELD> PojoParameterParser<PARAM> withParameterField(
             String name, String description, ParameterInfo<FIELD> info, BiConsumer<PARAM, FIELD> setter) {
-        this.fieldsFromParameters.add(
-                new PojoSetterParser<>(
-                        new OneParameterParser<>(name, description, info),
-                        setter
-                ));
-        return this;
+        return withParameterField(
+                new OneParameterParser<>(name, description, info),
+                setter
+        );
     }
 
     public <FIELD> PojoParameterParser<PARAM> withParameterField(

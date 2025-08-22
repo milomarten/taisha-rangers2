@@ -5,22 +5,52 @@ import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.EnumUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Function;
 
+/**
+ * A ParameterInfo which can extract en Enum from the command usage.
+ * Behind the scenes, this is a wrapper around a parameter of type Integer with a list of choices.
+ * Discord will enforce that only those Integers are supported; however, if an invalid Integer
+ * is somehow provided, the defaultValue will be returned, as a safeguard.
+ * A namer parameter is provided, which is used to convert the enum into a String to display in the list of options
+ * to the user. By default, it will use the name() function attached to the num.
+ * @param <E> The enum type.
+ */
 public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
     private final E[] universe;
     private final E defaultValue;
+    private Function<E, String> namer = E::name;
 
+    /**
+     * Create a required Enum parameter
+     * @param enumClass The class of the enum
+     */
     public EnumParameter(Class<E> enumClass) {
         this(enumClass, null);
     }
 
+    /**
+     * Create a (potentially) optional Enum parameter.
+     * If the defaultValue is null, the parameter is considered required; otherwise, it's optional.
+     * @param enumClass The class of the enum
+     * @param defaultValue The default value to return
+     */
     public EnumParameter(Class<E> enumClass, E defaultValue) {
         this.universe = enumClass.getEnumConstants();
         this.defaultValue = defaultValue;
+    }
+
+    /**
+     * Specify the way to convert the enum into a human-friendly string.
+     * @param namer The naming function to use
+     * @return This instance, for chaining.
+     */
+    public EnumParameter<E> namer(Function<E, String> namer) {
+        this.namer = namer;
+        return this;
     }
 
     @Override
@@ -35,7 +65,7 @@ public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
     public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder) {
         var choices = Arrays.stream(universe)
                 .map(e -> (ApplicationCommandOptionChoiceData) ApplicationCommandOptionChoiceData.builder()
-                        .name(e.name())
+                        .name(namer.apply(e))
                         .value(e.ordinal())
                         .build())
                 .toList();
