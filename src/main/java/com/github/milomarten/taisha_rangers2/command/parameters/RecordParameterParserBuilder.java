@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameters;
 
+import com.github.milomarten.taisha_rangers2.command.parameter.ParameterInfo;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,14 @@ public abstract class RecordParameterParserBuilder<PARAM, CONSTRUCTOR> {
             return new Two<>(one, other);
         }
 
+        public <B> Two<PARAM, A, B> and(String name, String desc, ParameterInfo<B> parameterInfo) {
+            return and(new OneParameterParser<>(name, desc, parameterInfo));
+        }
+
+        public <B> Two<PARAM, A, B> and(Function<ChatInputInteractionEvent, B> func) {
+            return and(new OneNonParameterParser<>(func));
+        }
+
         @Override
         public ParameterParser<PARAM> build(Function<A, PARAM> constructor) {
             return new ParameterParser<>() {
@@ -90,6 +99,14 @@ public abstract class RecordParameterParserBuilder<PARAM, CONSTRUCTOR> {
          */
         public N<PARAM> and(ParameterParser<?> other) {
             return new N<>(List.of(one, two, other));
+        }
+
+        public N<PARAM> and(String name, String desc, ParameterInfo<?> parameterInfo) {
+            return and(new OneParameterParser<>(name, desc, parameterInfo));
+        }
+
+        public N<PARAM> and(Function<ChatInputInteractionEvent, ?> func) {
+            return and(new OneNonParameterParser<>(func));
         }
 
         @Override
