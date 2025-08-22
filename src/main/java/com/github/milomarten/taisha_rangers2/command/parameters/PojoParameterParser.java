@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
     private final Supplier<PARAM> constructor;
-    private final List<ParameterFieldParser<PARAM, ?>> fieldsFromParameters = new ArrayList<>();
+    private final List<PojoSetterParser<PARAM, ?>> fieldsFromParameters = new ArrayList<>();
     private final List<BiConsumer<ChatInputInteractionEvent, PARAM>> fieldsFromInteractions = new ArrayList<>();
 
     private static final Comparator<Possible<Boolean>> REQUIRED_FIRST = Comparator.comparing(
@@ -36,7 +36,8 @@ public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
     @Override
     public List<ApplicationCommandOptionData> toDiscordSpec() {
         return fieldsFromParameters.stream()
-                .map(ParameterFieldParser::toDiscordSpec)
+                .map(PojoSetterParser::toDiscordSpec)
+                .flatMap(List::stream)
                 .sorted(Comparator.comparing(ApplicationCommandOptionData::required, REQUIRED_FIRST))
                 .toList();
     }
@@ -49,10 +50,17 @@ public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
     public <FIELD> PojoParameterParser<PARAM> withParameterField(
             String name, String description, ParameterInfo<FIELD> info, BiConsumer<PARAM, FIELD> setter) {
         this.fieldsFromParameters.add(
-                new ParameterFieldParser<>(
+                new PojoSetterParser<>(
                         new OneParameterParser<>(name, description, info),
                         setter
                 ));
+        return this;
+    }
+
+    public <FIELD> PojoParameterParser<PARAM> withParameterField(
+            ParameterParser<FIELD> parser, BiConsumer<PARAM, FIELD> setter) {
+        this.fieldsFromParameters.add(
+                new PojoSetterParser<>(parser, setter));
         return this;
     }
 
