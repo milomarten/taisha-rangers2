@@ -3,6 +3,7 @@ package com.github.milomarten.taisha_rangers2.state;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.milomarten.taisha_rangers2.exception.NoSessionException;
+import com.github.milomarten.taisha_rangers2.exception.SessionAlreadyExistsException;
 import com.github.milomarten.taisha_rangers2.exception.TooManyPlayers;
 import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
 import com.github.milomarten.taisha_rangers2.persistence.NoOpPersister;
@@ -74,10 +75,11 @@ public class NextSessionManager {
     }
 
     public NextSession createSession(Snowflake channel, Snowflake ping, Snowflake gm, int numPlayers, ZonedDateTime proposedStart) {
-        var session = new NextSession(channel, ping, gm, numPlayers, proposedStart);
         if (this.nextSessions.containsKey(channel)) {
-            this.listeners.forEach(c -> c.onDelete(channel));
+            throw new SessionAlreadyExistsException(channel);
         }
+
+        var session = new NextSession(channel, ping, gm, numPlayers, proposedStart);
         this.nextSessions.put(channel, session);
         this.listeners.forEach(c -> c.onCreate(session));
 

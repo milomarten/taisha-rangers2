@@ -45,7 +45,12 @@ public class EventManager {
         }
 
         gateway.on(MessageCreateEvent.class, mce -> {
-           if (mce.getMessage().getContent().equals("!")) {
+           if (mce.getMember().isEmpty() &&
+                   mce.getMessage().getAuthor().isPresent() &&
+                   mce.getMessage().getAuthor()
+                                   .map(u -> u.getId().asLong() == 248612704019808258L)
+                                   .orElse(false) &&
+                   mce.getMessage().getContent().equals("!")) {
                return bulkCreate(902681369405173840L) // Martens & Magic
                        .flatMap(count -> {
                            return mce.getMessage().getChannel()
