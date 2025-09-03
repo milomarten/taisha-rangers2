@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -51,12 +52,15 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
 
     public abstract CommandResponse doAction(PARAM params);
 
-    private String computeMemberPermissions() {
+    private Optional<String> computeMemberPermissions() {
+        if (permissions.isEmpty()) {
+            return Optional.empty();
+        }
         BigInteger perms = BigInteger.ZERO;
         for (var perm : permissions) {
             BigInteger permAsBigInt = BigInteger.ONE.shiftLeft(perm.bitPosition);
             perms = perms.or(permAsBigInt);
         }
-        return perms.toString();
+        return Optional.of(perms.toString());
     }
 }

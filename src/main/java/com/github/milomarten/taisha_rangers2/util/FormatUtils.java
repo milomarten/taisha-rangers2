@@ -37,7 +37,7 @@ public class FormatUtils {
      * @return A string that represents a timestamp with the short date format
      */
     public static String formatShortDateTime(TemporalAccessor temporal) {
-        return "<t:" + temporal.get(ChronoField.INSTANT_SECONDS) + ":f>";
+        return "<t:" + temporal.getLong(ChronoField.INSTANT_SECONDS) + ":f>";
     }
 
     /**
@@ -48,6 +48,6 @@ public class FormatUtils {
      * @return A string that represents a timestamp with the short date format
      */
     public static String formatShortTime(TemporalAccessor temporal) {
-        return "<t:" + temporal.get(ChronoField.INSTANT_SECONDS) + ":t>";
+        return "<t:" + temporal.getLong(ChronoField.INSTANT_SECONDS) + ":t>";
     }
 }
