@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -56,6 +57,7 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
                     .values()
                     .stream()
                     .map(PlayerResponse::getAfterTime)
+                    .filter(Objects::nonNull)
                     .max(Comparator.naturalOrder())
                     .orElse(nextSession.getProposedStartTime());
         }
