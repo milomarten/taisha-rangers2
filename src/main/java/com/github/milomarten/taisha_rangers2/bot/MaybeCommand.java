@@ -13,6 +13,7 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 @Component("maybe")
 public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
@@ -36,33 +37,22 @@ public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
 
     @Override
     public CommandResponse doAction(Parameters params) {
-        // kill me
-        ZonedDateTime[] time = new ZonedDateTime[1];
-
-        var worked = nextSessionManager.playerDo(
+        return nextSessionManager.playerDoAndReturn(
                 params.channelId,
                 params.user.getId(),
                 (session, pr) -> {
                     var reminderTime = ZonedDateTime.now().plusHours(params.hoursFromNow);
                     if (reminderTime.isBefore(session.getProposedStartTime())) {
                         pr.maybe(reminderTime);
-                        time[0] = reminderTime;
+                        var text = String.format("%s may be able to come. I'll check back with them at %s",
+                                params.user.getUsername(), FormatUtils.formatShortDateTime(reminderTime));
+                        return CommandResponse.reply(text, false);
+                    } else {
+                        var text = "That reminder would come too late. We need your answer sooner than that!";
+                        return CommandResponse.reply(text, true);
                     }
                 }
-        );
-
-        if (worked) {
-            if (time[0] == null) {
-                var text = "That reminder would come too late. We need your answer sooner than that!";
-                return CommandResponse.reply(text, true);
-            } else {
-                var text = String.format("%s may be able to come. I'll check back with them at %s",
-                        params.user.getUsername(), FormatUtils.formatShortDateTime(time[0]));
-                return CommandResponse.reply(text, false);
-            }
-        } else {
-            return CommandResponse.reply("No session???", true);
-        }
+        ).orElseGet(() -> CommandResponse.reply("No session???", true));
     }
 
     @Data

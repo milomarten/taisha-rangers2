@@ -54,20 +54,14 @@ public class YesCommand extends CommandSpec<YesCommand.Parameters> {
 
     @Override
     public CommandResponse doAction(Parameters params) {
-        // i hate it i hate it i hate it
-        var startTime = new ZonedDateTime[1];
-        var endTime = new ZonedDateTime[1];
-        var worked = nextSessionManager.playerDo(params.channel, params.user.getId(), (session, pr) -> {
-           startTime[0] = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, params.timezone);
-           endTime[0] = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, params.timezone);
-           pr.yes(startTime[0], endTime[0]);
-        });
-
-        if (worked) {
-            return CommandResponse.reply(getResponseString(params.user, startTime[0], endTime[0]), false);
-        } else {
+        return nextSessionManager.playerDoAndReturn(params.channel, params.user.getId(), (session, pr) -> {
+            var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, params.timezone);
+            var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, params.timezone);
+            pr.yes(startTime, endTime);
+            return CommandResponse.reply(getResponseString(params.user, startTime, endTime), false);
+        }).orElseGet(() -> {
             return CommandResponse.reply("No upcoming session???", true);
-        }
+        });
     }
 
     static ZonedDateTime computeContextualTime(

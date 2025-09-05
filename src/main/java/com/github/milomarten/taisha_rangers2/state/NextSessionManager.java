@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -92,8 +93,11 @@ public class NextSessionManager {
         return update(channel, s -> s.setStartTime(date));
     }
 
-    public boolean setSessionDate(Snowflake channel, Function<NextSession, ZonedDateTime> function) {
-        return update(channel, ns -> ns.setStartTime(function.apply(ns)));
+    public Optional<ZonedDateTime> setSessionDate(Snowflake channel, Function<NextSession, ZonedDateTime> function) {
+        return updateAndReturn(channel, ns -> {
+            ns.setStartTime(function.apply(ns));
+            return ns.getStartTime();
+        });
     }
 
     public boolean cancelSession(Snowflake channel) {
@@ -109,29 +113,45 @@ public class NextSessionManager {
     }
 
     public boolean playerDo(Snowflake channel, Snowflake player, BiConsumer<NextSession, PlayerResponse> action) {
-        return update(channel, s -> {
+        return playerDoAndReturn(channel, player, (ns, pr) -> {
+            action.accept(ns, pr);
+            return true;
+        }).orElse(false);
+    }
+
+    public <T> Optional<T> playerDoAndReturn(Snowflake channel, Snowflake player, BiFunction<NextSession, PlayerResponse, T> action) {
+        return updateAndReturn(channel, s -> {
             var response = s.getPlayerResponses().get(player);
+            T returnValue;
             if (response != null) {
-                action.accept(s, response);
+                returnValue = action.apply(s, response);
             } else if (s.getNumberOfPlayersResponded() < s.getNumberOfPlayers()) {
                 var newPlayer = new PlayerResponse(player);
-                action.accept(s, newPlayer);
+                returnValue = action.apply(s, newPlayer);
                 s.getPlayerResponses().put(player, newPlayer);
             } else {
                 throw new TooManyPlayers(s.getNumberOfPlayers());
             }
+            return returnValue;
         });
     }
 
     private boolean update(Snowflake channel, Consumer<NextSession> update) {
+        return updateAndReturn(channel, ns -> {
+            update.accept(ns);
+            return true;
+        }).orElse(false);
+    }
+
+    private <T> Optional<T> updateAndReturn(Snowflake channel, Function<NextSession, T> update) {
         var session = nextSessions.get(channel);
         if (session == null) {
-            return false;
+            return Optional.empty();
         }
-        update.accept(session);
+        var ret = update.apply(session);
         listeners.forEach(c -> c.onUpdate(session));
 
         persist();
-        return true;
+        return Optional.of(ret);
     }
 }

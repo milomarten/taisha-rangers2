@@ -9,6 +9,7 @@ import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
+import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -43,12 +44,14 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
         Function<NextSession, ZonedDateTime> estimatedStart = params.estimatedStart.isEmpty() ?
                 this::findBestStartTime :
                 (ns) -> DateUtil.parseCasualDateTime(params.estimatedStart);
-        var worked = manager.setSessionDate(params.channelId, estimatedStart);
-        if (worked) {
-            return CommandResponse.reply("Neat! It's done. Trust me.", true);
-        } else {
-            return CommandResponse.reply("No session???", true);
-        }
+        return manager.setSessionDate(params.channelId, estimatedStart)
+                .map(startTime -> {
+                    return CommandResponse.reply(String.
+                        format("Alright, session will formally start at %s!", FormatUtils.formatShortDateTime(startTime)),
+                            false);
+                }).orElseGet(() -> {
+                    return CommandResponse.reply("No session???", true);
+                });
     }
 
     private ZonedDateTime findBestStartTime(NextSession nextSession) {
