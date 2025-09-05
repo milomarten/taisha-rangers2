@@ -137,7 +137,7 @@ public class DateUtil {
      */
     public static LocalTime parseCasualTime(String value) {
         if (value.isEmpty()) { return null; }
-        value = StringUtils.deleteWhitespace(value.toUpperCase());
+        value = StringUtils.deleteWhitespace(value.toUpperCase()).replace(":", "");
         TimeType timeType;
         if (value.endsWith("PM") || value.endsWith("AM")) {
             timeType = value.endsWith("PM") ? TimeType.PM : TimeType.AM;
@@ -149,26 +149,25 @@ public class DateUtil {
             timeType = TimeType.TWENTY_FOUR_HOUR_TIME;
         }
 
-        if (!value.contains(":")) {
-            // 3PM or 3p -> 15:00:00
-            // 15 -> 15:00:00
-            if (NumberUtils.isCreatable(value)) {
-                var hour = timeType.normalizeHour(Integer.parseInt(value));
-                return LocalTime.of(hour, 0);
+        // 3PM or 3p -> 15:00:00
+        // 15 -> 15:00:00
+        if (NumberUtils.isCreatable(value)) {
+            int hour, minute;
+            if (value.length() <= 2) {
+                hour = timeType.normalizeHour(Integer.parseInt(value));
+                minute = 0;
+            } else if (value.length() == 3) {
+                hour = timeType.normalizeHour(Integer.parseInt(value.substring(0, 1)));
+                minute = Integer.parseInt(value.substring(1, 3));
+            } else if (value.length() == 4) {
+                hour = timeType.normalizeHour(Integer.parseInt(value.substring(0, 2)));
+                minute = Integer.parseInt(value.substring(2, 4));
             } else {
-                throw new DateTimeException("Invalid hour, must be 0 to 23");
+                throw new DateTimeException("Invalid time, can't be more than four numbers");
             }
+            return LocalTime.of(hour, minute);
         } else {
-            // 3:30PM or 3:30p -> 15:30:00
-            // 15:30 -> 15:3T0:00
-            var tokens = value.split(":");
-            if (NumberUtils.isCreatable(tokens[0]) && NumberUtils.isCreatable(tokens[1])) {
-                var hour = timeType.normalizeHour(Integer.parseInt(tokens[0]));
-                var minute = Integer.parseInt(tokens[1]);
-                return LocalTime.of(hour, minute);
-            } else {
-                throw new DateTimeException("Invalid hour/minute, must be a properly formatted time");
-            }
+            throw new DateTimeException("Invalid time format, can only contain numbers, whitespace, or colons");
         }
     }
 

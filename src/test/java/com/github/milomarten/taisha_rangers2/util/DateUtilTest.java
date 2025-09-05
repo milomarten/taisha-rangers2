@@ -73,14 +73,14 @@ class DateUtilTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"3p", "3P", "3pm", "3PM", "3 PM", "15", "15:00", "3:00p", "3:00PM", "3:00 PM"})
+    @ValueSource(strings = {"3p", "3P", "3pm", "3PM", "3 PM", "15", "15:00", "3:00p", "3:00PM", "3:00 PM", "300p"})
     public void testManyWaysToSay3PM(String value) {
         var time = DateUtil.parseCasualTime(value);
         assertEquals("15:00", time.toString());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"3:30p", "3:30PM", "3:30 PM", "15:30"})
+    @ValueSource(strings = {"3:30p", "3:30PM", "3:30 PM", "15:30", "330p"})
     public void testManyWaysToSay330PM(String value) {
         var time = DateUtil.parseCasualTime(value);
         assertEquals("15:30", time.toString());
