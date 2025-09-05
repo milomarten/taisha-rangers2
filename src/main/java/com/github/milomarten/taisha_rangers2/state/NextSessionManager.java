@@ -113,7 +113,7 @@ public class NextSessionManager {
             var response = s.getPlayerResponses().get(player);
             if (response != null) {
                 action.accept(s, response);
-            } else if (s.getPlayerResponses().size() < s.getNumberOfPlayers()) {
+            } else if (s.getNumberOfPlayersResponded() < s.getNumberOfPlayers()) {
                 var newPlayer = new PlayerResponse(player);
                 action.accept(s, newPlayer);
                 s.getPlayerResponses().put(player, newPlayer);

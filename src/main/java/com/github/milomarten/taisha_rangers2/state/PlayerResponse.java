@@ -33,6 +33,7 @@ public class PlayerResponse {
     public enum State {
         YES,
         NO,
-        MAYBE
+        MAYBE,
+        NO_RESPONSE
     }
 }

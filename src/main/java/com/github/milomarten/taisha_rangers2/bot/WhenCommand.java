@@ -28,8 +28,10 @@ public class WhenCommand extends CommandSpec<Snowflake> {
             var session = sessionMaybe.get();
             if (session.getStartTime() == null) {
                 return CommandResponse.reply(
-                        String.format("Session is currently scheduled for %s. However, I'm still awaiting all player inputs, so that may change.",
-                                FormatUtils.formatShortDateTime(session.getProposedStartTime())),
+                        String.format("Session is currently scheduled for %s. However, I'm still awaiting all player inputs, so that may change. %d/%d players have weighed in so far",
+                                FormatUtils.formatShortDateTime(session.getProposedStartTime()),
+                                session.getNumberOfPlayersResponded(),
+                                session.getNumberOfPlayers()),
                         true
                 );
             } else {

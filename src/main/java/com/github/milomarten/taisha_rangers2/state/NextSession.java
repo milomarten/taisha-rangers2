@@ -21,11 +21,16 @@ public class NextSession {
     private final ZonedDateTime proposedStartTime;
     private ZonedDateTime startTime;
 
-    public boolean allPlayersResponded() {
-        return playerResponses.values()
+    @JsonIgnore
+    public int getNumberOfPlayersResponded() {
+        return (int) playerResponses.values()
                 .stream()
-                .filter(pr -> pr.getState() != PlayerResponse.State.MAYBE)
-                .count() == numberOfPlayers;
+                .filter(pr -> pr.getState() != PlayerResponse.State.MAYBE && pr.getState() != PlayerResponse.State.NO_RESPONSE)
+                .count();
+    }
+
+    public boolean allPlayersResponded() {
+        return getNumberOfPlayersResponded() == numberOfPlayers;
     }
 
     public boolean allPlayersRespondedYes() {
