@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
-@Component("cancel")
+@Component("done")
 public class DoneSessionCommand extends CommandSpec<Snowflake> {
     private final NextSessionManager manager;
 
