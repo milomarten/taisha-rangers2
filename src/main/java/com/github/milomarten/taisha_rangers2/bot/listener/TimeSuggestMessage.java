@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -47,9 +48,23 @@ public class TimeSuggestMessage implements NextSessionListener {
                 message = String.format("All players should be able to start by %s!",
                         FormatUtils.formatShortDateTime(bestStartTime.get()));
             } else {
-                message = String.format("All players should be able to start by %s! Also, session must end by %s.",
-                        FormatUtils.formatShortDateTime(bestStartTime.get()),
-                        FormatUtils.formatShortDateTime(bestEndTime.get()));
+                var bst = bestStartTime.get();
+                var bet = bestEndTime.get();
+                if (bst.isBefore(bet)) {
+                    var duration = Duration.between(bst, bet).toHours();
+                    if (duration < 2) {
+                        message = String.format("Looking at the schedules, session would be pretty short (%s to %s).",
+                                FormatUtils.formatShortDateTime(bestStartTime.get()),
+                                FormatUtils.formatShortDateTime(bestEndTime.get()));
+                    }
+                    else {
+                        message = String.format("All players should be able to start by %s! Also, session must end by %s.",
+                                FormatUtils.formatShortDateTime(bestStartTime.get()),
+                                FormatUtils.formatShortDateTime(bestEndTime.get()));
+                    }
+                } else {
+                    message = "There is a conflict, and some players requested schedules don't overlap. I can't recommend a start time.";
+                }
             }
 
             client.getChannelById(session.getChannel())
