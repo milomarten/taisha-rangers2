@@ -13,7 +13,7 @@ import java.util.Objects;
  */
 public class DateUtil {
     private static final ZoneId CENTRAL_TIME = ZoneId.of("America/Chicago");
-    private static final LocalTime DEFAULT_TIME = LocalTime.of(20, 0);
+    private static final LocalTime DEFAULT_TIME = LocalTime.of(18, 0);
 
     private static final Map<String, ZoneId> OVERRIDES = new HashMap<>();
     static {
@@ -33,8 +33,8 @@ public class DateUtil {
 
     /**
      * Parse a date time from a number of permissible formats:
-     * - YYYY-MM-DD -> YYYY-MM-DDT20:00:00, using Chicago Time at that moment.
-     * - MM-DD -> [computed year]-MM-DDT20:00:00, using Chicago Time at that moment. If
+     * - YYYY-MM-DD -> YYYY-MM-DDT18:00:00, using Chicago Time at that moment.
+     * - MM-DD -> [computed year]-MM-DDT18:00:00, using Chicago Time at that moment. If
      * the input date is after the current date, the current year is assumed; otherwise, it is next year. Examples:
      *  - Input: 08-15, Today: 2025-08-01 -> Year is 2025 (since Aug 15th is after August 1st)
      *  - Input: 01-02, Today: 2025-12-25 -> Year is 2026 (since Jan 2nd is before December 25th, when not taking years into account)

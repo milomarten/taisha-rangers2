@@ -41,7 +41,13 @@ public abstract class BaseSessionScheduler<KEY> {
     protected void cancelIf(Predicate<KEY> predicate) {
         var initSize = sessions.size();
         sessions.entrySet()
-            .removeIf(entry -> predicate.test(entry.getKey()));
+            .removeIf(entry -> {
+                if (predicate.test(entry.getKey())) {
+                    entry.getValue().cancel();
+                    return true;
+                }
+                return false;
+            });
         log.info("Cancelled {} {} tasks", initSize - sessions.size(), getClass().getSimpleName());
     }
 
