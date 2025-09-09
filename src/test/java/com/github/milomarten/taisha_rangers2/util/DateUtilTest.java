@@ -21,25 +21,25 @@ class DateUtilTest {
     @Test
     public void testYMD() {
         var zdt = DateUtil.parseCasualDateTime("2025-08-13");
-        assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
+        assertEquals("2025-08-13T18:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testYM_ParseIsThisYear() {
         var zdt = DateUtil.parseCasualDateTime("08-13", makeClock(8, 1));
-        assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
+        assertEquals("2025-08-13T18:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testYM_ParseIsNextYear() {
         var zdt = DateUtil.parseCasualDateTime("08-13", makeClock(9, 1));
-        assertEquals("2026-08-13T20:00-05:00[America/Chicago]", zdt.toString());
+        assertEquals("2026-08-13T18:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
     public void testYM_ParseIsToday() {
         var zdt = DateUtil.parseCasualDateTime("08-13", makeClock(8, 13));
-        assertEquals("2025-08-13T20:00-05:00[America/Chicago]", zdt.toString());
+        assertEquals("2025-08-13T18:00-05:00[America/Chicago]", zdt.toString());
     }
 
     @Test
