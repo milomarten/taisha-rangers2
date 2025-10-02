@@ -4,9 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.time.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * Various utilities for handling dates via commands
@@ -192,5 +191,62 @@ public class DateUtil {
         };
 
         public abstract int normalizeHour(int number);
+    }
+
+    public static LocalDate parseCasualDate(String value) {
+        return parseCasualDate(value, Clock.systemDefaultZone());
+    }
+
+    public static LocalDate parseCasualDate(String value, Clock clock) {
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        List<String> elements = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        for (char c : value.toCharArray()) {
+            if (Character.isDigit(c)) {
+                sb.append(c);
+            } else {
+                elements.add(sb.toString());
+                sb.setLength(0);
+            }
+        }
+        if (!sb.isEmpty()) {
+            elements.add(sb.toString());
+        }
+
+        int year, month, day;
+        if (elements.size() == 2) {
+            LocalDate now =  LocalDate.now(clock);
+
+            month = Integer.parseInt(elements.get(0));
+            day = Integer.parseInt(elements.get(1));
+            year = now.getYear();
+            var requestedMD = MonthDay.of(month, day);
+            var nowMD = MonthDay.from(now);
+            if (requestedMD.isBefore(nowMD)) {
+                year += 1;
+            }
+        } else if (elements.size() == 3) {
+            year = Integer.parseInt(elements.get(0));
+            month = Integer.parseInt(elements.get(1));
+            day = Integer.parseInt(elements.get(2));
+
+            if (year < 2000) {
+                year += 2000;
+            }
+        } else {
+            throw new DateTimeException("Supports MM/DD or YYYY/MM/DD");
+        }
+
+        return LocalDate.of(year, month, day);
+    }
+
+    private static final DateTimeFormatter PRETTY
+            = DateTimeFormatter.ofPattern("MMM dd");
+
+    public static String getPrettyDate(LocalDate date) {
+        return date.format(PRETTY);
     }
 }

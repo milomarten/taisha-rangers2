@@ -29,7 +29,7 @@ public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
                 .withParameterField(
                         "hours",
                         "I'll send a message to you in this many hours to remind you",
-                        IntParameter.builder().minValue(1).maxValue(48).build(),
+                        IntParameter.builder().minValue(1).maxValue(72).build(),
                         Parameters::setHoursFromNow
                 )
         );
