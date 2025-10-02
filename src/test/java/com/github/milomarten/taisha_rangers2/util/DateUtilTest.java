@@ -115,4 +115,17 @@ class DateUtilTest {
         var time = DateUtil.parseCasualTime("00:00");
         assertEquals("00:00", time.toString());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"3/12", "03/12", "03-12", "3-12", "03 12"})
+    public void testManyWaysToSayMarch12(String value) {
+        var date = DateUtil.parseCasualDate(value, makeClock(1, 1));
+        assertEquals("2025-03-12", date.toString());
+    }
+
+    @Test
+    public void testDayRollover() {
+        var date = DateUtil.parseCasualDate("2-16", makeClock(12, 1));
+        assertEquals("2026-02-16", date.toString());
+    }
 }

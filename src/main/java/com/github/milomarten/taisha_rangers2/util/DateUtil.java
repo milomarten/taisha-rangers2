@@ -207,7 +207,7 @@ public class DateUtil {
         for (char c : value.toCharArray()) {
             if (Character.isDigit(c)) {
                 sb.append(c);
-            } else {
+            } else if (!sb.isEmpty()) {
                 elements.add(sb.toString());
                 sb.setLength(0);
             }
