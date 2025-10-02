@@ -21,6 +21,11 @@ public abstract class BaseSessionScheduler<KEY> {
             log.info("{} Task {} already exists. Cancelling...", getClass().getSimpleName(), flake);
             sessions.get(flake).cancel();
         }
+
+        if (Instant.now().isAfter(when)) {
+            log.info("{} Task {} is scheduled for the past.", getClass().getSimpleName(), flake);
+        }
+
         log.info("Scheduling {} task for {} at {}", getClass().getSimpleName(), flake, when);
         Runnable wrappedTask = () -> {
             log.info("Starting {} task {}", getClass().getSimpleName(), flake);
