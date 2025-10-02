@@ -9,9 +9,11 @@ import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
+@Component
 @Qualifier("ooo")
 public class OOOCommand extends CommandSpec<OOOCommand.Parameters> {
     private final OutOfOfficeManager manager;

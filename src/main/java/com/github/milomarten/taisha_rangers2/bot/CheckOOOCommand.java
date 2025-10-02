@@ -8,10 +8,12 @@ import com.github.milomarten.taisha_rangers2.state.OutOfOfficeManager;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.stream.Collectors;
 
+@Component
 @Qualifier("check-ooo")
 public class CheckOOOCommand extends CommandSpec<LocalDate> {
     private final OutOfOfficeManager manager;
