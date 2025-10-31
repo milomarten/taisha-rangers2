@@ -3,6 +3,7 @@ package com.github.milomarten.taisha_rangers2.state;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.milomarten.taisha_rangers2.exception.NoSessionException;
+import com.github.milomarten.taisha_rangers2.exception.NotInParty;
 import com.github.milomarten.taisha_rangers2.exception.SessionAlreadyExistsException;
 import com.github.milomarten.taisha_rangers2.exception.TooManyPlayers;
 import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
@@ -75,12 +76,12 @@ public class NextSessionManager {
         return Optional.ofNullable(this.nextSessions.get(id));
     }
 
-    public NextSession createSession(Snowflake channel, Snowflake ping, Snowflake gm, int numPlayers, ZonedDateTime proposedStart) {
+    public NextSession createSession(Snowflake channel, Party party, ZonedDateTime proposedStart) {
         if (this.nextSessions.containsKey(channel)) {
             throw new SessionAlreadyExistsException(channel);
         }
 
-        var session = new NextSession(channel, ping, gm, numPlayers, proposedStart);
+        var session = new NextSession(channel, party, proposedStart);
         this.nextSessions.put(channel, session);
         this.listeners.forEach(c -> c.onCreate(session));
 
@@ -121,16 +122,18 @@ public class NextSessionManager {
 
     public <T> Optional<T> playerDoAndReturn(Snowflake channel, Snowflake player, BiFunction<NextSession, PlayerResponse, T> action) {
         return updateAndReturn(channel, s -> {
+            if (!s.getParty().getPlayers().contains(player)) {
+                throw new NotInParty();
+            }
+
             var response = s.getPlayerResponses().get(player);
             T returnValue;
             if (response != null) {
                 returnValue = action.apply(s, response);
-            } else if (s.getNumberOfPlayersResponded() < s.getNumberOfPlayers()) {
+            } else {
                 var newPlayer = new PlayerResponse(player);
                 returnValue = action.apply(s, newPlayer);
                 s.getPlayerResponses().put(player, newPlayer);
-            } else {
-                throw new TooManyPlayers(s.getNumberOfPlayers());
             }
             return returnValue;
         });

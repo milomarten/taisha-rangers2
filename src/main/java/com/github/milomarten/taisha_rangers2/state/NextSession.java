@@ -14,12 +14,15 @@ public class NextSession {
     private static final int HOURS_BEFORE_SESSION_TO_ANNOUNCE = 24 * 7;
 
     private final Snowflake channel;
-    private final Snowflake ping;
-    private final Snowflake gm;
-    private final int numberOfPlayers;
+    private final Party party;
     private final Map<Snowflake, PlayerResponse> playerResponses = new HashMap<>();
     private final ZonedDateTime proposedStartTime;
     private ZonedDateTime startTime;
+
+    // Adaptions from the old way
+    public Snowflake getPing() { return party.getPing(); }
+    public Snowflake getGm() { return party.getDm(); }
+    public int getNumberOfPlayers() { return party.getPlayers().size(); }
 
     @JsonIgnore
     public int getNumberOfPlayersResponded() {
@@ -30,14 +33,14 @@ public class NextSession {
     }
 
     public boolean allPlayersResponded() {
-        return getNumberOfPlayersResponded() == numberOfPlayers;
+        return getNumberOfPlayersResponded() == getNumberOfPlayers();
     }
 
     public boolean allPlayersRespondedYes() {
         return playerResponses.values()
                 .stream()
                 .filter(pr -> pr.getState() == PlayerResponse.State.YES)
-                .count() == numberOfPlayers;
+                .count() == getNumberOfPlayers();
     }
 
     @JsonIgnore
