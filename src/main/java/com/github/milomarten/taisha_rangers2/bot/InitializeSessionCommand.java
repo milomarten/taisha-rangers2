@@ -8,6 +8,8 @@ import com.github.milomarten.taisha_rangers2.command.parameter.SnowflakeParamete
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
+import com.github.milomarten.taisha_rangers2.state.OutOfOfficeManager;
+import com.github.milomarten.taisha_rangers2.state.Party;
 import com.github.milomarten.taisha_rangers2.state.PartyManager;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
@@ -17,18 +19,22 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component("init")
 public class InitializeSessionCommand extends CommandSpec<InitializeSessionCommand.Parameters> {
     private final NextSessionManager manager;
     private final PartyManager partyManager;
+    private final OutOfOfficeManager oooManager;
 
-    public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager) {
+    public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager, OutOfOfficeManager oooManager) {
         super("init", "Create an upcoming session");
         this.manager = manager;
         this.partyManager = partyManager;
+        this.oooManager = oooManager;
         setParameterParser(new PojoParameterParser<>(Parameters::new)
                 .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
                 .withParameterField(PojoParameterParser.userId(), Parameters::setUserId)
@@ -69,6 +75,14 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                     true
             );
         }
+        var ooos = checkOOOs(party, params.proposedStart);
+        if (!ooos.isEmpty()) {
+            var asPings = ooos.stream().map(FormatUtils::pingUser).collect(Collectors.joining(" "));
+            return CommandResponse.reply(
+                    String.format("Can't have session that day, players are OOO: %s", asPings),
+                    true
+            );
+        }
 
         var session = manager.createSession(
                 params.channelId,
@@ -88,6 +102,12 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
             return CommandResponse.reply(text, false)
                     .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
         }
+    }
+
+    private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
+        var whoOut = oooManager.whoIsOutOn(when.toLocalDate());
+        whoOut.retainAll(party.getPlayers());
+        return whoOut;
     }
 
     @Data

@@ -1,4 +1,4 @@
-package com.github.milomarten.taisha_rangers2.bot;
+package com.github.milomarten.taisha_rangers2.bot.ooo;
 
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
