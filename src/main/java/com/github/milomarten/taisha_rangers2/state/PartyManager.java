@@ -56,13 +56,14 @@ public class PartyManager {
                 .subscribe();
     }
 
-    public boolean createParty(String name, Snowflake dm) {
+    public boolean createParty(String name, Snowflake dm, Snowflake ping) {
         if (this.parties.containsKey(name)) {
             return false;
         }
         var party = new Party();
         party.setName(name);
         party.setDm(dm);
+        party.setPing(ping);
         return true;
     }
 

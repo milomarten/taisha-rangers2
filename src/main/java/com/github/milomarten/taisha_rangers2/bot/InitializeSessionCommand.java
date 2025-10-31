@@ -63,6 +63,11 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                     "Only the DM can create a session for this party",
                     true
             );
+        } else if (party.getPlayers().isEmpty()) {
+            return CommandResponse.reply(
+                    "Party has no players! Please add at least one player.",
+                    true
+            );
         }
 
         var session = manager.createSession(

@@ -57,11 +57,15 @@ public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implem
 
         client.getChannelById(session.getChannel())
                 .cast(TextChannel.class)
-                .flatMap(tc -> tc.createMessage(text)
-                        .withAllowedMentions(AllowedMentions.builder()
+                .flatMap(tc -> {
+                    var msg = tc.createMessage(text);
+                    if (session.getPing() != null) {
+                        msg = msg.withAllowedMentions(AllowedMentions.builder()
                                 .allowRole(session.getPing())
-                                .build())
-                )
+                                .build());
+                    }
+                    return msg;
+                })
                 .onErrorResume(ex -> {
                     log.error("Unable to ping players for upcoming session", ex);
                     return Mono.empty();
