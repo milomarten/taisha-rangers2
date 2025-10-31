@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Component
 @Slf4j
@@ -64,6 +66,8 @@ public class PartyManager {
         party.setName(name);
         party.setDm(dm);
         party.setPing(ping);
+
+        persist();
         return true;
     }
 
@@ -71,17 +75,18 @@ public class PartyManager {
         return Optional.ofNullable(this.parties.get(name));
     }
 
-    public boolean addPlayer(String partyName, Snowflake player) {
-        return getParty(partyName)
-                .map(p -> p.getPlayers().add(player))
-                .orElse(false);
+    public <T> Optional<T> updatePartyAndReturn(String name, Function<Party, T> func) {
+        var response = getParty(name)
+                .map(func);
+        if (response.isPresent()) {
+            persist();
+        }
+        return response;
     }
 
-    public boolean addPing(String partyName, Snowflake ping) {
-        return getParty(partyName)
-                .map(p -> {
-                    p.setPing(ping);
-                    return true;
-                }).orElse(false);
+    public boolean updateParty(String name, Consumer<Party> func) {
+        return updatePartyAndReturn(name, (p) -> {
+            func.accept(p); return true;
+        }).isPresent();
     }
 }

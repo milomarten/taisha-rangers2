@@ -53,7 +53,7 @@ public class CreatePartyCommand extends CommandSpec<CreatePartyCommand.Parameter
         if (worked) {
             return CommandResponse.reply(
                     String.format("Created party `%s`!", params.partyName),
-                    true
+                    false
             );
         } else {
             return CommandResponse.reply(
