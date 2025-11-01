@@ -67,6 +67,7 @@ public class PartyManager {
         party.setDm(dm);
         party.setPing(ping);
 
+        parties.put(name, party);
         persist();
         return true;
     }
@@ -82,11 +83,5 @@ public class PartyManager {
             persist();
         }
         return response;
-    }
-
-    public boolean updateParty(String name, Consumer<Party> func) {
-        return updatePartyAndReturn(name, (p) -> {
-            func.accept(p); return true;
-        }).isPresent();
     }
 }
