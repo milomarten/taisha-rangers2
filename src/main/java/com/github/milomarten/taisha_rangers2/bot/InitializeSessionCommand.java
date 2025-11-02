@@ -16,6 +16,7 @@ import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.rest.util.AllowedMentions;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -35,9 +36,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         this.manager = manager;
         this.partyManager = partyManager;
         this.oooManager = oooManager;
-        setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
-                .withParameterField(PojoParameterParser.userId(), Parameters::setUserId)
+        setParameterParser(SessionAdminParams.parser(Parameters::new)
                 .withParameterField(
                         "party",
                         "The party in this session",
@@ -64,7 +63,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
             );
         }
         var party = partyMaybe.get();
-        if (!Objects.equals(params.userId, party.getDm())) {
+        if (!Objects.equals(params.getUserId(), party.getDm())) {
             return CommandResponse.reply(
                     "Only the DM can create a session for this party",
                     true
@@ -85,7 +84,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         }
 
         var session = manager.createSession(
-                params.channelId,
+                params.getChannelId(),
                 party,
                 params.proposedStart
         );
@@ -111,9 +110,8 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
     }
 
     @Data
-    public static class Parameters {
-        private Snowflake channelId;
-        private Snowflake userId;
+    @EqualsAndHashCode(callSuper = true)
+    public static class Parameters extends SessionAdminParams {
         private String partyName;
         private ZonedDateTime proposedStart;
     }
