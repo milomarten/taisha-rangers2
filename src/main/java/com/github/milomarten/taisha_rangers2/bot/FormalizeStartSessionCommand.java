@@ -2,7 +2,6 @@ package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
@@ -10,8 +9,8 @@ import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
-import discord4j.common.util.Snowflake;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -27,8 +26,7 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
     public FormalizeStartSessionCommand(NextSessionManager manager) {
         super("set-start", "Formalize the official start time of session");
         this.manager = manager;
-        setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
+        setParameterParser(SessionAdminParams.parser(Parameters::new)
                 .withParameterField(
                         "start-time",
                         "The formal start time for session.",
@@ -44,14 +42,20 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
         Function<NextSession, ZonedDateTime> estimatedStart = params.estimatedStart.isEmpty() ?
                 this::findBestStartTime :
                 (ns) -> DateUtil.parseCasualDateTime(params.estimatedStart);
-        return manager.setSessionDate(params.channelId, estimatedStart)
-                .map(startTime -> {
-                    return CommandResponse.reply(String.
-                        format("Alright, session will formally start at %s!", FormatUtils.formatShortDateTime(startTime)),
+        return manager.updateAndReturn(params.getChannelId(), ns -> {
+            if (Objects.equals(ns.getGm(), params.getUserId())) {
+                ns.setStartTime(estimatedStart.apply(ns));
+                return CommandResponse.reply(String.
+                        format("Alright, session will formally start at %s!", FormatUtils.formatShortDateTime(ns.getStartTime())),
                             false);
-                }).orElseGet(() -> {
-                    return CommandResponse.reply("No session???", true);
-                });
+            } else {
+                return CommandResponse.reply(
+                        "You're not the DM!", true
+                );
+            }
+        }).orElseGet(() -> {
+            return CommandResponse.reply("No session???", true);
+        });
     }
 
     private ZonedDateTime findBestStartTime(NextSession nextSession) {
@@ -67,9 +71,8 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
         return null;
     }
 
-    @Data
-    public static class Parameters {
-        private Snowflake channelId;
+    @Getter @Setter
+    public static class Parameters extends SessionAdminParams {
         private String estimatedStart;
     }
 }

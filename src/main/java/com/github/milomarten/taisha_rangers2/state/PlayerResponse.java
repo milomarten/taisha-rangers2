@@ -8,7 +8,7 @@ import java.time.ZonedDateTime;
 @Data
 public class PlayerResponse {
     private final Snowflake player;
-    private State state;
+    private State state = State.NO_RESPONSE;
     private ZonedDateTime afterTime;
     private ZonedDateTime beforeTime;
 

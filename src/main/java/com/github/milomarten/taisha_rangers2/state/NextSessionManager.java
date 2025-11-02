@@ -2,10 +2,8 @@ package com.github.milomarten.taisha_rangers2.state;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.milomarten.taisha_rangers2.exception.NoSessionException;
-import com.github.milomarten.taisha_rangers2.exception.NotInParty;
-import com.github.milomarten.taisha_rangers2.exception.SessionAlreadyExistsException;
-import com.github.milomarten.taisha_rangers2.exception.TooManyPlayers;
+import com.github.milomarten.taisha_rangers2.bot.SessionAdminParams;
+import com.github.milomarten.taisha_rangers2.exception.*;
 import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
 import com.github.milomarten.taisha_rangers2.persistence.NoOpPersister;
 import com.github.milomarten.taisha_rangers2.persistence.Persister;
@@ -90,26 +88,17 @@ public class NextSessionManager {
         return session;
     }
 
-    public boolean setSessionDate(Snowflake channel, ZonedDateTime date) {
-        return update(channel, s -> s.setStartTime(date));
-    }
-
-    public Optional<ZonedDateTime> setSessionDate(Snowflake channel, Function<NextSession, ZonedDateTime> function) {
-        return updateAndReturn(channel, ns -> {
-            ns.setStartTime(function.apply(ns));
-            return ns.getStartTime();
-        });
-    }
-
-    public boolean cancelSession(Snowflake channel) {
-        var worked = this.nextSessions.remove(channel) != null;
-        if (worked) {
-            this.listeners.forEach(c -> c.onDelete(channel));
-
-            persist();
-            return true;
-        } else {
+    public boolean cancelSession(SessionAdminParams params) {
+        var session = this.nextSessions.get(params.getChannelId());
+        if (session == null) {
             return false;
+        } else if (Objects.equals(params.getUserId(), session.getGm())) {
+             this.nextSessions.remove(params.getChannelId());
+             this.listeners.forEach(c -> c.onDelete(params.getChannelId()));
+             persist();
+             return true;
+        } else {
+            throw new NotDM();
         }
     }
 
@@ -146,7 +135,7 @@ public class NextSessionManager {
         }).orElse(false);
     }
 
-    private <T> Optional<T> updateAndReturn(Snowflake channel, Function<NextSession, T> update) {
+    public <T> Optional<T> updateAndReturn(Snowflake channel, Function<NextSession, T> update) {
         var session = nextSessions.get(channel);
         if (session == null) {
             return Optional.empty();
