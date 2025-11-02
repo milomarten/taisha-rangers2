@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -104,7 +105,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
     }
 
     private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
-        var whoOut = oooManager.whoIsOutOn(when.toLocalDate());
+        var whoOut = new ArrayList<>(oooManager.whoIsOutOn(when.toLocalDate()));
         whoOut.retainAll(party.getPlayers());
         return whoOut;
     }
