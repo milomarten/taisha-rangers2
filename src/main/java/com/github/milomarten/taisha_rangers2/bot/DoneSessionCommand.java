@@ -38,7 +38,7 @@ public class DoneSessionCommand extends CommandSpec<DoneSessionCommand.Parameter
             if (!params.getOtherStuff().isEmpty()) {
                 sb.add("Players also gain: " + params.otherStuff);
             }
-            return CommandResponse.reply(sb.toString(), true);
+            return CommandResponse.reply(sb.toString(), false);
         } else {
             return CommandResponse.reply("No session???", true);
         }
