@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 public class ItsTimeMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter private NextSessionManager nextSessionManager;
-    @Setter private TimingHelper timingHelper;
+    private final TimingHelper timingHelper;
 
     @Override
     public void onLoad(NextSession nextSession) {
