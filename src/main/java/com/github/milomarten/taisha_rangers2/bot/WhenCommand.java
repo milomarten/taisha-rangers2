@@ -10,6 +10,7 @@ import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,7 +61,7 @@ public class WhenCommand extends CommandSpec<Snowflake> {
     }
 
     private String describeStatuses(NextSession session) {
-        return hydratePlayerResponses(session)
+        return session.getHydratedPlayerResponses()
                 .map(pr -> {
                     if (pr.getState() == PlayerResponse.State.NO) {
                         return String.format("- %s: Can NOT Join", FormatUtils.pingUser(pr.getPlayer()));
@@ -80,18 +81,5 @@ public class WhenCommand extends CommandSpec<Snowflake> {
                     }
                 })
                 .collect(Collectors.joining("\n"));
-    }
-
-    private Stream<PlayerResponse> hydratePlayerResponses(NextSession session) {
-        return session.getParty().getPlayers()
-                .stream()
-                .map(id -> {
-                    var playerResponse = session.getPlayerResponses().get(id);
-                    if (playerResponse == null) {
-                        return new PlayerResponse(id);
-                    } else {
-                        return playerResponse;
-                    }
-                });
     }
 }

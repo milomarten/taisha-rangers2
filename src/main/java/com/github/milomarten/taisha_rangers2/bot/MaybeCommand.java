@@ -13,7 +13,6 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 
 @Component("maybe")
 public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
@@ -44,7 +43,7 @@ public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
                 params.user.getId(),
                 (session, pr) -> {
                     var reminderTime = ZonedDateTime.now().plusHours(params.hoursFromNow).withMinute(0);
-                    if (reminderTime.isBefore(timingHelper.getGentleReminderTime(session))) {
+                    if (reminderTime.isBefore(timingHelper.getLatestStatusSubmitTime(session))) {
                         pr.maybe(reminderTime);
                         var text = String.format("%s may be able to come. I'll check back with them at %s",
                                 params.user.getUsername(), FormatUtils.formatShortDateTime(reminderTime));

@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Data
 public class NextSession {
@@ -41,5 +42,21 @@ public class NextSession {
                 .stream()
                 .filter(pr -> pr.getState() == PlayerResponse.State.YES)
                 .count() == getNumberOfPlayers();
+    }
+
+    /***
+     * Get a list of all player responses, even those who haven't responded
+     * This combines the party members with their corresponding status, using the special
+     * NO_RESPONSE status for party members who haven't responded yes.
+     * @return A stream of PlayerResponses, including those who haven't responded yet.
+     */
+    @JsonIgnore
+    public Stream<PlayerResponse> getHydratedPlayerResponses() {
+        return getParty().getPlayers()
+                .stream()
+                .map(id -> {
+                    var playerResponse = getPlayerResponses().get(id);
+                    return Objects.requireNonNullElseGet(playerResponse, () -> new PlayerResponse(id));
+                });
     }
 }

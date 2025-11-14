@@ -12,13 +12,16 @@ public class TimingHelper {
     @Value("${reminder.far-off-session}")
     private Duration reminderFarOffSessionOffset;
 
-    @Value("${reminder.not-all-players-present}")
-    private Duration notAllPlayersPresentOffset;
+    @Value("${reminder.latest-status-submit-time}")
+    private Duration latestStatusSubmitOffset;
 
-    @Value("${reminder.time-for-session}")
-    private Duration timeForSessionOffset;
+    @Value("${reminder.gentle-reminder}")
+    private Duration gentleReminderOffset;
 
-    @Value("${reminder.done-reminder}")
+    @Value("${reminder.session-start}")
+    private Duration sessionStartReminderOffset;
+
+    @Value("${reminder.done}")
     private Duration doneReminderOffset;
 
     public ZonedDateTime getAnnouncementTime(NextSession session) {
@@ -32,13 +35,18 @@ public class TimingHelper {
         return now.isBefore(announcementTime);
     }
 
+    public ZonedDateTime getLatestStatusSubmitTime(NextSession session) {
+        return session.getProposedStartTime()
+                .plus(latestStatusSubmitOffset);
+    }
+
     public ZonedDateTime getGentleReminderTime(NextSession session) {
         return session.getProposedStartTime()
-                .plus(notAllPlayersPresentOffset);
+                .plus(gentleReminderOffset);
     }
 
     public ZonedDateTime getSessionStartReminderTime(NextSession session) {
-        return session.getStartTime().plus(timeForSessionOffset);
+        return session.getStartTime().plus(sessionStartReminderOffset);
     }
 
     public ZonedDateTime getDoneReminderTime(NextSession session) {

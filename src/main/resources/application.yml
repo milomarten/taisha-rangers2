@@ -7,7 +7,8 @@ spring:
 #    base-path: 'M:\Code\taisha-rangers2'
 
 reminder:
-  far-off-session: -PT168h
-  not-all-players-present: -PT48h
-  time-for-session: -PT15m
-  done-reminder: PT16h
+  far-off-session: -PT168h # for sessions far in the future, only send the message at this offset from the proposed start time
+  gentle-reminder: -PT48h # ping all players who have not submitted if they can attend session at this offset from the proposed start time
+  latest-status-submit-time: -PT24h # don't allow players to /when to a time after this offset from the proposed start time
+  session-start: -PT15m # ping all players that session is about to start at this offset from the start time
+  done: PT16h # ping the GM at this offset from the start time to use /done

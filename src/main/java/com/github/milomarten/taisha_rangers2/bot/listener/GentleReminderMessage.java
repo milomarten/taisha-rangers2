@@ -4,6 +4,7 @@ import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
+import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -61,7 +63,10 @@ public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> imple
 
     private void doPlayerPingIfNecessary(NextSession session) {
         if (!session.allPlayersResponded()) {
-            var ping = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
+            var ping = session.getHydratedPlayerResponses()
+                    .filter(pr -> pr.getState() == PlayerResponse.State.NO_RESPONSE)
+                    .map(pr -> FormatUtils.pingUser(pr.getPlayer()))
+                    .collect(Collectors.joining(" "));
             var message = String.format("Hey %s! Don't forget to send `/yes` or `/no` if you can attend session on %s! Thank you!",
                     ping, FormatUtils.formatShortDateTime(session.getProposedStartTime()));
             this.client.getChannelById(session.getChannel())
