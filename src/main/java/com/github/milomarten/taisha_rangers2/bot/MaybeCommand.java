@@ -18,10 +18,12 @@ import java.util.Optional;
 @Component("maybe")
 public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
     private final NextSessionManager nextSessionManager;
+    private final TimingHelper timingHelper;
 
-    public MaybeCommand(NextSessionManager nextSessionManager) {
+    public MaybeCommand(NextSessionManager nextSessionManager, TimingHelper timingHelper) {
         super("maybe", "Indicate that you need to wait a bit before knowing if you can join session");
         this.nextSessionManager = nextSessionManager;
+        this.timingHelper = timingHelper;
 
         setParameterParser(new PojoParameterParser<>(Parameters::new)
                 .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
@@ -41,8 +43,8 @@ public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
                 params.channelId,
                 params.user.getId(),
                 (session, pr) -> {
-                    var reminderTime = ZonedDateTime.now().plusHours(params.hoursFromNow);
-                    if (reminderTime.isBefore(session.getProposedStartTime())) {
+                    var reminderTime = ZonedDateTime.now().plusHours(params.hoursFromNow).withMinute(0);
+                    if (reminderTime.isBefore(timingHelper.getGentleReminderTime(session))) {
                         pr.maybe(reminderTime);
                         var text = String.format("%s may be able to come. I'll check back with them at %s",
                                 params.user.getUsername(), FormatUtils.formatShortDateTime(reminderTime));

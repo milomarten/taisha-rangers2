@@ -42,17 +42,4 @@ public class NextSession {
                 .filter(pr -> pr.getState() == PlayerResponse.State.YES)
                 .count() == getNumberOfPlayers();
     }
-
-    @JsonIgnore
-    public boolean isFarOffSession() {
-        var now = ZonedDateTime.now();
-        var announcementTime = getAnnouncementTime();
-
-        return now.isBefore(announcementTime);
-    }
-
-    @JsonIgnore
-    public ZonedDateTime getAnnouncementTime() {
-        return proposedStartTime.minusHours(HOURS_BEFORE_SESSION_TO_ANNOUNCE);
-    }
 }

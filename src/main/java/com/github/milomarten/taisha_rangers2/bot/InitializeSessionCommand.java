@@ -31,12 +31,14 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
     private final NextSessionManager manager;
     private final PartyManager partyManager;
     private final OutOfOfficeManager oooManager;
+    private final TimingHelper timingHelper;
 
-    public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager, OutOfOfficeManager oooManager) {
+    public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager, OutOfOfficeManager oooManager, TimingHelper timingHelper) {
         super("init", "Create an upcoming session");
         this.manager = manager;
         this.partyManager = partyManager;
         this.oooManager = oooManager;
+        this.timingHelper = timingHelper;
         setParameterParser(SessionAdminParams.parser(Parameters::new)
                 .withParameterField(
                         "party",
@@ -90,7 +92,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                 params.proposedStart
         );
 
-        if (session.isFarOffSession()) {
+        if (timingHelper.isFarOffSession(session)) {
             return CommandResponse.reply(
                     String.format("Scheduled a session for %s. It's a ways off, so I'll announce it closer to time", FormatUtils.formatShortDateTime(params.proposedStart)),
                     true

@@ -5,3 +5,9 @@ spring:
 #persistence:
 #  session-manager:
 #    base-path: 'M:\Code\taisha-rangers2'
+
+reminder:
+  far-off-session: -PT168h
+  not-all-players-present: -PT48h
+  time-for-session: -PT15m
+  done-reminder: PT16h

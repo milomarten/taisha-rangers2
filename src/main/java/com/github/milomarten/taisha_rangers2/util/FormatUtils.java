@@ -50,4 +50,8 @@ public class FormatUtils {
     public static String formatShortTime(TemporalAccessor temporal) {
         return "<t:" + temporal.getLong(ChronoField.INSTANT_SECONDS) + ":t>";
     }
+
+    public static String formatRelativeTime(TemporalAccessor temporal) {
+        return "<t:" + temporal.getLong(ChronoField.INSTANT_SECONDS) + ":R>";
+    }
 }

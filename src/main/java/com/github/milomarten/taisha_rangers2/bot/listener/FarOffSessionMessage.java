@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
+import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
@@ -21,6 +22,8 @@ public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implem
     private final GatewayDiscordClient client;
     @Setter
     private NextSessionManager nextSessionManager;
+    @Setter
+    private TimingHelper timingHelper;
 
     @Override
     public void onLoad(NextSession nextSession) {
@@ -29,11 +32,11 @@ public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implem
 
     @Override
     public void onCreate(NextSession session) {
-        if (session.isFarOffSession()) {
+        if (timingHelper.isFarOffSession(session)) {
             schedule(
                     session.getChannel(),
                     () -> nextSessionManager.getNextSession(session.getChannel()).ifPresent(this::pingPlayersForUpcomingSession),
-                    session.getAnnouncementTime().toInstant()
+                    timingHelper.getAnnouncementTime(session).toInstant()
             );
         }
     }

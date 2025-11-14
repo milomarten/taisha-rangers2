@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
+import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
@@ -7,12 +8,15 @@ import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 
 @Component
@@ -21,6 +25,7 @@ import java.time.ZonedDateTime;
 public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter private NextSessionManager nextSessionManager;
+    @Setter private TimingHelper timingHelper;
 
     @Override
     public void onLoad(NextSession nextSession) {
@@ -31,8 +36,7 @@ public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> imple
 
     @Override
     public void onCreate(NextSession session) {
-        var firstPingDate = session.getProposedStartTime()
-                .minusHours(24);
+        var firstPingDate = timingHelper.getGentleReminderTime(session);
         var now = ZonedDateTime.now();
         if (firstPingDate.isAfter(now)) {
             schedule(session.getChannel(),

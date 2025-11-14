@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
+import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 public class ItsTimeMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter private NextSessionManager nextSessionManager;
+    @Setter private TimingHelper timingHelper;
 
     @Override
     public void onLoad(NextSession nextSession) {
@@ -29,7 +31,7 @@ public class ItsTimeMessage extends BaseSessionScheduler<Snowflake> implements N
     @Override
     public void onUpdate(NextSession session) {
         if (session.getStartTime() != null) {
-            var newTime = session.getStartTime().toInstant();
+            var newTime = timingHelper.getSessionStartReminderTime(session).toInstant();
             var oldTime = super.getScheduledTime(session.getChannel());
             if (oldTime == null || !oldTime.equals(newTime)) {
                 schedule(
@@ -49,9 +51,10 @@ public class ItsTimeMessage extends BaseSessionScheduler<Snowflake> implements N
 
     private void pingToBegin(NextSession session) {
         var message = String.format(
-                "%s %s! It's time for session!",
+                "%s %s! Session starts %s!",
                 FormatUtils.pingUser(session.getGm()),
-                FormatUtils.pingRole(session.getPing())
+                FormatUtils.pingRole(session.getPing()),
+                FormatUtils.formatRelativeTime(session.getStartTime())
         );
 
         client.getChannelById(session.getChannel())

@@ -11,11 +11,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DebugPrinter implements NextSessionListener {
     @Override
-    public void setNextSessionManager(NextSessionManager manager) {
-
-    }
-
-    @Override
     public void onLoad(NextSession nextSession) {
         log.info("Loaded: {}", nextSession);
     }
