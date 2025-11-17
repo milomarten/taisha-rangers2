@@ -5,11 +5,18 @@ import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
+import discord4j.core.object.entity.channel.TextChannel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+@RequiredArgsConstructor
 @Slf4j
 public class AutoCancel extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
-    private NextSessionManager nextSessionManager;
+    private final GatewayDiscordClient gatewayDiscordClient;
+    @Setter private NextSessionManager nextSessionManager;
 
     @Override
     public void onLoad(NextSession nextSession) {
@@ -47,6 +54,10 @@ public class AutoCancel extends BaseSessionScheduler<Snowflake> implements NextS
                     session.getGm(),
                     session.getChannel()
             ));
+            gatewayDiscordClient.getChannelById(session.getChannel())
+                    .cast(TextChannel.class)
+                    .flatMap(tc -> tc.createMessage("Auto-cancelled session, since no start time was provided."))
+                    .subscribe();
         }
     }
 }
