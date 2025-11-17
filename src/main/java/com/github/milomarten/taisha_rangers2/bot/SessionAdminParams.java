@@ -2,11 +2,15 @@ package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import discord4j.common.util.Snowflake;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.function.Supplier;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SessionAdminParams {
     private Snowflake userId;
     private Snowflake channelId;
