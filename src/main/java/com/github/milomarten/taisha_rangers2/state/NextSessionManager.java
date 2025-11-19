@@ -128,7 +128,7 @@ public class NextSessionManager {
         });
     }
 
-    private boolean update(Snowflake channel, Consumer<NextSession> update) {
+    public boolean update(Snowflake channel, Consumer<NextSession> update) {
         return updateAndReturn(channel, ns -> {
             update.accept(ns);
             return true;

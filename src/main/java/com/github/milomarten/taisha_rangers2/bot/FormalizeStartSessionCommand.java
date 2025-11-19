@@ -30,7 +30,7 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
                 .withParameterField(
                         "start-time",
                         "The formal start time for session.",
-                        StringParameter.DEFAULT_EMPTY_STRING,
+                        StringParameter.REQUIRED,
                         Parameters::setEstimatedStart
                 )
         );
@@ -39,12 +39,9 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
 
     @Override
     public CommandResponse doAction(FormalizeStartSessionCommand.Parameters params) {
-        Function<NextSession, ZonedDateTime> estimatedStart = params.estimatedStart.isEmpty() ?
-                this::findBestStartTime :
-                (ns) -> DateUtil.parseCasualDateTime(params.estimatedStart);
         return manager.updateAndReturn(params.getChannelId(), ns -> {
             if (Objects.equals(ns.getGm(), params.getUserId())) {
-                ns.setStartTime(estimatedStart.apply(ns));
+                ns.setStartTime(DateUtil.parseCasualDateTime(params.estimatedStart));
                 return CommandResponse.reply(String.
                         format("Alright, session will formally start at %s!", FormatUtils.formatShortDateTime(ns.getStartTime())),
                             false);
@@ -56,19 +53,6 @@ public class FormalizeStartSessionCommand extends CommandSpec<FormalizeStartSess
         }).orElseGet(() -> {
             return CommandResponse.reply("No session???", true);
         });
-    }
-
-    private ZonedDateTime findBestStartTime(NextSession nextSession) {
-        if (nextSession.allPlayersRespondedYes()) {
-            return nextSession.getPlayerResponses()
-                    .values()
-                    .stream()
-                    .map(PlayerResponse::getAfterTime)
-                    .filter(Objects::nonNull)
-                    .max(Comparator.naturalOrder())
-                    .orElse(nextSession.getProposedStartTime());
-        }
-        return null;
     }
 
     @Getter @Setter
