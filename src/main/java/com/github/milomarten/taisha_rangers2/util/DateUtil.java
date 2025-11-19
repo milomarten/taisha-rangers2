@@ -243,6 +243,59 @@ public class DateUtil {
         return LocalDate.of(year, month, day);
     }
 
+    private static final Set<String> DAYS = Set.of("DAY", "DAYS", "D");
+    private static final Set<String> HOURS = Set.of("H", "HR", "HRS", "HOURS", "HOUR");
+    private static final Set<String> MINUTES = Set.of("M", "MIN", "MINS", "MINUTES");
+
+    public static Duration parseCasualDuration(String value) {
+        var val = StringUtils.deleteWhitespace(value);
+        if (val.isEmpty()) {
+            throw new IllegalArgumentException("Can't be empty");
+        }
+        val += '\0'; // sentinel
+        int days = 0;
+        int hours = 0;
+        int minutes = 0;
+
+        var runningValue = new StringBuilder();
+        int runningNumber = -1;
+        boolean expectingNumber = true;
+        for (char c : val.toCharArray()) {
+            if (expectingNumber && !Character.isDigit(c)) {
+                runningNumber = Integer.parseInt(runningValue.toString());
+                runningValue.setLength(0);
+                expectingNumber = false;
+            } else if (!expectingNumber && (Character.isDigit(c) || c == '\0')) {
+                if (runningNumber == -1) {
+                    throw new IllegalArgumentException("Invalid format, should be # days # hours # minutes");
+                }
+                var unit = runningValue.toString().toUpperCase();
+                if (DAYS.contains(unit)) {
+                    if (days != 0) { throw new IllegalArgumentException("Can't repeat units"); }
+                    days = runningNumber;
+                } else if (HOURS.contains(unit)) {
+                    if (hours != 0) { throw new IllegalArgumentException("Can't repeat units"); }
+                    hours = runningNumber;
+                } else if (MINUTES.contains(unit)) {
+                    if (minutes != 0) { throw new IllegalArgumentException("Can't repeat units"); }
+                    minutes = runningNumber;
+                } else {
+                    throw new IllegalArgumentException("Invalid format, should be # days # hours # minutes");
+                }
+                runningValue.setLength(0);
+                runningNumber = -1;
+                expectingNumber = true;
+            }
+            runningValue.append(c);
+        }
+
+        if (!expectingNumber) {
+            throw new IllegalArgumentException("Invalid format, should be # days # hours # minutes");
+        }
+
+        return Duration.ofDays(days).plusHours(hours).plusMinutes(minutes);
+    }
+
     private static final DateTimeFormatter PRETTY
             = DateTimeFormatter.ofPattern("MMM dd");
 

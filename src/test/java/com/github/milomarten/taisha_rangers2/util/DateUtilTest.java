@@ -128,4 +128,47 @@ class DateUtilTest {
         var date = DateUtil.parseCasualDate("2-16", makeClock(12, 1));
         assertEquals("2026-02-16", date.toString());
     }
+
+    @Test
+    public void testCasualDate_DaysOnly() {
+        var duration = DateUtil.parseCasualDuration("3 days");
+        assertEquals("PT72H", duration.toString());
+    }
+
+    @Test
+    public void testCasualDate_HoursOnly() {
+        var duration = DateUtil.parseCasualDuration("14 hours");
+        assertEquals("PT14H", duration.toString());
+    }
+
+    @Test
+    public void testCasualDate_MinutesOnly() {
+        var duration = DateUtil.parseCasualDuration("29 minutes");
+        assertEquals("PT29M", duration.toString());
+    }
+
+    @Test
+    public void testCasualDate_HoursAndMinutes() {
+        var duration = DateUtil.parseCasualDuration("14 hours 27 minutes");
+        assertEquals("PT14H27M", duration.toString());
+    }
+
+    @Test
+    public void testCasualDate_DaysAndHoursAndMinutes() {
+        var duration = DateUtil.parseCasualDuration("2 days 14 hours 27 minutes");
+        assertEquals("PT62H27M", duration.toString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "",
+            "       ",
+            "3 pascals",
+            "3",
+            "1 day 2 days",
+            "1 day 2 hours 3 days"
+    })
+    public void testCasualDuration_BadThings(String expression) {
+        assertThrows(IllegalArgumentException.class, () -> DateUtil.parseCasualDuration(expression));
+    }
 }
