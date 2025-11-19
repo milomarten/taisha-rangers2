@@ -52,14 +52,16 @@ public class MaybeCommand extends CommandSpec<MaybeCommand.Parameters> {
                 params.user.getId(),
                 (session, pr) -> {
                     var reminderTime = ZonedDateTime.now().plus(params.timeFromNow).withSecond(0);
-                    if (reminderTime.isBefore(timingHelper.getLatestStatusSubmitTime(session))) {
+                    var latestSubmitTime = timingHelper.getLatestStatusSubmitTime(session);
+                    if (reminderTime.isBefore(latestSubmitTime)) {
                         pr.maybe(reminderTime);
                         var text = String.format("%s may be able to come. I'll check back with them at %s",
                                 params.user.getUsername(), FormatUtils.formatShortDateTime(reminderTime));
                         return CommandResponse.reply(text, false);
                     } else {
-                        var text = "That reminder would come too late. We need your answer sooner than that!";
-                        return CommandResponse.reply(text, true);
+                        var text = "That reminder would come too late. We need your answer by %s!";
+                        return CommandResponse.reply(
+                                String.format(text, FormatUtils.formatShortDateTime(latestSubmitTime)), true);
                     }
                 }
         ).orElseGet(() -> CommandResponse.reply("No session???", true));

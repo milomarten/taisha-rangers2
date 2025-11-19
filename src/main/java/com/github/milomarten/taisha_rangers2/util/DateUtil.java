@@ -3,6 +3,7 @@ package com.github.milomarten.taisha_rangers2.util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import java.math.BigInteger;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -247,6 +248,10 @@ public class DateUtil {
     private static final Set<String> HOURS = Set.of("H", "HR", "HRS", "HOURS", "HOUR");
     private static final Set<String> MINUTES = Set.of("M", "MIN", "MINS", "MINUTES");
 
+    private static boolean isNumberCharacter(char c) {
+        return Character.isDigit(c) || c == '-' || c == '+' || c == '.';
+    }
+
     public static Duration parseCasualDuration(String value) {
         var val = StringUtils.deleteWhitespace(value);
         if (val.isEmpty()) {
@@ -261,26 +266,26 @@ public class DateUtil {
         int runningNumber = -1;
         boolean expectingNumber = true;
         for (char c : val.toCharArray()) {
-            if (expectingNumber && !Character.isDigit(c)) {
-                runningNumber = Integer.parseInt(runningValue.toString());
+            if (expectingNumber && !isNumberCharacter(c)) {
+                runningNumber = parseAndValidateNumber(runningValue.toString());
                 runningValue.setLength(0);
                 expectingNumber = false;
-            } else if (!expectingNumber && (Character.isDigit(c) || c == '\0')) {
+            } else if (!expectingNumber && (isNumberCharacter(c) || c == '\0')) {
                 if (runningNumber == -1) {
-                    throw new IllegalArgumentException("Invalid format, should be # days # hours # minutes");
+                    throw new IllegalArgumentException("Encountered unit " + runningValue + " without number");
                 }
                 var unit = runningValue.toString().toUpperCase();
                 if (DAYS.contains(unit)) {
-                    if (days != 0) { throw new IllegalArgumentException("Can't repeat units"); }
+                    if (days != 0) { throw new IllegalArgumentException("Can't repeat days"); }
                     days = runningNumber;
                 } else if (HOURS.contains(unit)) {
-                    if (hours != 0) { throw new IllegalArgumentException("Can't repeat units"); }
+                    if (hours != 0) { throw new IllegalArgumentException("Can't repeat hours"); }
                     hours = runningNumber;
                 } else if (MINUTES.contains(unit)) {
-                    if (minutes != 0) { throw new IllegalArgumentException("Can't repeat units"); }
+                    if (minutes != 0) { throw new IllegalArgumentException("Can't repeat minutes"); }
                     minutes = runningNumber;
                 } else {
-                    throw new IllegalArgumentException("Invalid format, should be # days # hours # minutes");
+                    throw new IllegalArgumentException("Unknown unit " + runningValue + ", I accept days, hours, and minutes");
                 }
                 runningValue.setLength(0);
                 runningNumber = -1;
@@ -290,10 +295,28 @@ public class DateUtil {
         }
 
         if (!expectingNumber) {
-            throw new IllegalArgumentException("Invalid format, should be # days # hours # minutes");
+            throw new IllegalArgumentException("Encountered number without unit");
         }
 
         return Duration.ofDays(days).plusHours(hours).plusMinutes(minutes);
+    }
+
+    private static int parseAndValidateNumber(String value) {
+        BigInteger bi;
+        try {
+            bi = new BigInteger(value);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Number " + value + "is malformed: " + ex.getMessage());
+        }
+        try {
+            var asInt = bi.intValueExact();
+            if (asInt < 0) {
+                throw new IllegalArgumentException("Number can't be negative");
+            }
+            return asInt;
+        } catch (ArithmeticException ex) {
+            throw new IllegalArgumentException("Number " + value + " is too big");
+        }
     }
 
     private static final DateTimeFormatter PRETTY

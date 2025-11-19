@@ -166,7 +166,12 @@ class DateUtilTest {
             "3 pascals",
             "3",
             "1 day 2 days",
-            "1 day 2 hours 3 days"
+            "1 day 2 hours 3 days",
+            "12345678901234567890 minutes",
+            "-17 days",
+            "17.5 days",
+            "12.1.3 days",
+            "1-7 days"
     })
     public void testCasualDuration_BadThings(String expression) {
         assertThrows(IllegalArgumentException.class, () -> DateUtil.parseCasualDuration(expression));
