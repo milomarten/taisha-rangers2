@@ -10,6 +10,7 @@ import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.rest.util.AllowedMentions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -24,7 +25,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TimeSuggestMessage implements NextSessionListener {
     private final GatewayDiscordClient client;
-    @Getter
+    @Setter
     private NextSessionManager nextSessionManager;
 
     @Override
