@@ -30,6 +30,9 @@ public class TimeSuggestMessage implements NextSessionListener {
 
     @Override
     public void onUpdate(NextSession session) {
+        // CAUTION: Calling nextSessionManager.update will result in all the listeners being called again.
+        // Without this null check, this code will infinitely loop.
+        // Take extra precaution when touching this code!
         if (session.getStartTime() == null && session.allPlayersRespondedYes()) {
             var responses = session.getPlayerResponses().values();
 
@@ -61,16 +64,16 @@ public class TimeSuggestMessage implements NextSessionListener {
                 var bst = bestStartTime.get();
                 var bet = bestEndTime.get();
                 if (bst.isBefore(bet)) {
-                    var duration = Duration.between(bst, bet).toHours();
-                    if (duration < 2) {
+                    var duration = Duration.between(bst, bet).toMinutes();
+                    if (duration < 120) {
                         start = bst;
-                        message = String.format("I set the start time to the earliest time for all players, %s. However, the end time is %s, which isn't that long. You might want to cancel.",
+                        message = String.format("I set the start time to the earliest time for all players, %s. However, session must end by %s, which would be a short session. You might want to cancel.",
                                 FormatUtils.formatShortDateTime(bestStartTime.get()),
                                 FormatUtils.formatShortDateTime(bestEndTime.get()));
                     }
                     else {
                         start = bst;
-                        message = String.format("All players can start whenever. As such, I set the start time to %s! However, session must wrap up by %s.",
+                        message = String.format("I set the start time to the earliest time for all players, %s! However, session must wrap up by %s.",
                                 FormatUtils.formatShortDateTime(bestStartTime.get()),
                                 FormatUtils.formatShortDateTime(bestEndTime.get()));
                     }
