@@ -50,7 +50,7 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
                 });
     }
 
-    public abstract CommandResponse doAction(PARAM params);
+    protected abstract CommandResponse doAction(PARAM params);
 
     private Optional<String> computeMemberPermissions() {
         if (permissions.isEmpty()) {
