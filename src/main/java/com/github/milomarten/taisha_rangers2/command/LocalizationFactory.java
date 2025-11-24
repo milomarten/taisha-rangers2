@@ -1,10 +1,12 @@
-package com.github.milomarten.taisha_rangers2.command.response;
+package com.github.milomarten.taisha_rangers2.command;
 
-import com.github.milomarten.taisha_rangers2.command.DiscordLocales;
+import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+
+import java.util.Locale;
 
 /**
  * A service which allows for making localizable Discord commands
@@ -13,6 +15,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class LocalizationFactory {
     private final MessageSource messageSource;
+
+    /**
+     * Create a localizedString using the backing messageSource
+     * Today, it just returns the raw default translation without any other locales. But in the future, maybe...
+     * @param key The key of the message
+     * @param args The args to pass into the message
+     * @return A LocalizedString containing the message requested
+     */
+    public LocalizedStrings createLocalizedString(String key, Object... args) {
+        return LocalizedStrings.of(messageSource.getMessage(key, args, Locale.US));
+    }
 
     /**
      * Create a localized response which will be translated into the user's language
