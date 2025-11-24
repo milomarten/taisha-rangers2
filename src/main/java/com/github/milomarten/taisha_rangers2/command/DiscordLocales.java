@@ -6,6 +6,25 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Utilities for working with Locales in Discord.
+ * Discord supports only a subset of locales that Java supports. As such, converting from Discord
+ * to Java will always work. When going in reverse, the best Discord option is provided,
+ * falling back to US English if none can be found.
+ * <br>
+ * Discord supports Spanish LATAM, which is `es-419`, which does not have a direct correlation
+ * in Java. This service converts it to and from `es_US`, like at my own job.
+ * <br>
+ * Almost all Discord locales are just a language, not tied to any country. As such, if the input locale contains
+ * that language, that will be the match.
+ * For those languages that are tied to a country, the input locale must match both language and country. If the country
+ * does not match and options, there is a default country for these locales that will fallback instead:
+ * - English -> en-US
+ * - Spanish -> es-ES
+ * - Chinese -> zh-CN
+ * Swedish and Portuguese are tied to countries, but there is only one option at this time for those languages
+ * (sv_SE and pt_BR).
+ */
 public class DiscordLocales {
     public static final Locale INDONESIAN_LOCALE = Locale.of("id");
     public static final Locale DANISH_LOCALE = Locale.of("da");
@@ -60,7 +79,7 @@ public class DiscordLocales {
             .add(PORTUGUESE_BRAZILIAN_LOCALE, true)
             .add(ROMANIAN_ROMANIA_LOCALE)
             .add(FINNISH_LOCALE)
-            .add(SWEDISH_LOCALE)
+            .add(SWEDISH_LOCALE, true)
             .add(VIETNAMESE_LOCALE)
             .add(TURKISH_LOCALE)
             .add(CZECH_LOCALE)
@@ -75,11 +94,21 @@ public class DiscordLocales {
             .add(CHINESE_TAIWAN_LOCALE)
             .add(KOREAN_LOCALE);
 
+    /**
+     * Convert the Discord locale into its corresponding Java Locale
+     * @param discordLocale The locale in Discord's format
+     * @return The locale in Java's format
+     */
     public static Locale fromDiscord(String discordLocale) {
         if (LATAM.equals(discordLocale)) { return LATAM_LOCALE; }
         return Locale.forLanguageTag(discordLocale);
     }
 
+    /**
+     * Convert the Java locale into its corresponding Discord Locale
+     * @param locale The locale in Java's format
+     * @return The locale in Discord's format
+     */
     public static String toDiscord(Locale locale) {
         if (LATAM_LOCALE.equals(locale)) { return LATAM; }
         return CHAIN.get(locale).toLanguageTag();

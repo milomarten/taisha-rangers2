@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameters;
 
+import com.github.milomarten.taisha_rangers2.command.LocalizedStrings;
 import com.github.milomarten.taisha_rangers2.command.parameter.ParameterInfo;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -102,6 +103,25 @@ public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
      */
     public <FIELD> PojoParameterParser<PARAM> withParameterField(
             String name, String description, ParameterInfo<FIELD> info, BiConsumer<PARAM, FIELD> setter) {
+        return withParameterField(
+                new OneParameterParser<>(name, description, info),
+                setter
+        );
+    }
+
+    /**
+     * Add a basic Parameter, which extracts a parameter from the command usage event and sets it in the POJO
+     * Behind the scenes, this uses OneParameterParser; as such, it will create one parameter that can be
+     * filled in by a user.
+     * @param name The name of the parameter
+     * @param description The description of the parameter
+     * @param info The ParameterInfo, which includes type and validation of the parameter
+     * @param setter The method to set that value on the POJO
+     * @return This instance, for chaining
+     * @param <FIELD> The type of the field being set
+     */
+    public <FIELD> PojoParameterParser<PARAM> withParameterField(
+            LocalizedStrings name, LocalizedStrings description, ParameterInfo<FIELD> info, BiConsumer<PARAM, FIELD> setter) {
         return withParameterField(
                 new OneParameterParser<>(name, description, info),
                 setter
