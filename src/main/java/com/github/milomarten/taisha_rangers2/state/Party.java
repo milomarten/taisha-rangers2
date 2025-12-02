@@ -12,4 +12,5 @@ public class Party {
     private Snowflake dm;
     private Set<Snowflake> players = new HashSet<>();
     private Snowflake ping;
+    private PartyTime usualTime;
 }

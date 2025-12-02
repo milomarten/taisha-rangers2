@@ -58,7 +58,9 @@ public class DateUtil {
      * @return The parsed ZonedDateTime
      */
     public static ZonedDateTime parseCasualDateTime(String value, Clock clock) {
-        if (value.length() == 10) {
+        if (value.isEmpty()) {
+            return null;
+        } else if (value.length() == 10) {
             // 2025-08-13. Assume default time and Central
             return LocalDate.parse(value)
                     .atTime(DEFAULT_TIME)

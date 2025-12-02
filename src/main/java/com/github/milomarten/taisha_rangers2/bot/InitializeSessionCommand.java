@@ -49,7 +49,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                 .withParameterField(
                         "proposed-start-time",
                         "The proposed start time for session.",
-                        StringParameter.REQUIRED.map(DateUtil::parseCasualDateTime),
+                        StringParameter.DEFAULT_EMPTY_STRING.map(DateUtil::parseCasualDateTime),
                         Parameters::setProposedStart
                 )
         );
@@ -77,7 +77,16 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                     true
             );
         }
-        var ooos = checkOOOs(party, params.proposedStart);
+
+        var proposedStart = params.proposedStart;
+        if (proposedStart == null) {
+            proposedStart = party.getUsualTime().getNextPossibleTime();
+            if (proposedStart == null) {
+                return CommandResponse.reply("No time provided, and the party doesn't have a standard time. One must be provided", true);
+            }
+        }
+
+        var ooos = checkOOOs(party, proposedStart);
         if (!ooos.isEmpty()) {
             var asPings = ooos.stream().map(FormatUtils::pingUser).collect(Collectors.joining(" "));
             return CommandResponse.reply(
@@ -89,18 +98,18 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         var session = manager.createSession(
                 params.getChannelId(),
                 party,
-                params.proposedStart
+                proposedStart
         );
 
         if (timingHelper.isFarOffSession(session)) {
             return CommandResponse.reply(
-                    String.format("Scheduled a session for %s. It's a ways off, so I'll announce it closer to time", FormatUtils.formatShortDateTime(params.proposedStart)),
+                    String.format("Scheduled a session for %s. It's a ways off, so I'll announce it closer to time", FormatUtils.formatShortDateTime(proposedStart)),
                     true
             );
         } else {
             var pingText = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
             var text = String.format("Hey %s! A session has been scheduled for %s. Let me know if you can join, by typing `/yes` or `/no`!",
-                    pingText, FormatUtils.formatShortDateTime(params.proposedStart));
+                    pingText, FormatUtils.formatShortDateTime(proposedStart));
             return CommandResponse.reply(text, false)
                     .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
         }
