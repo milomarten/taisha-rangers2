@@ -1,31 +1,27 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.state.NextSession;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
 @Component
+@ConfigurationProperties("reminder")
+@Getter @Setter
 public class TimingHelper {
-    @Value("${reminder.far-off-session}")
-    private Duration reminderFarOffSessionOffset;
-
-    @Value("${reminder.latest-status-submit-time}")
-    private Duration latestStatusSubmitOffset;
-
-    @Value("${reminder.gentle-reminder}")
-    private Duration gentleReminderOffset;
-
-    @Value("${reminder.session-start}")
+    private Duration farOffSessionThreshold;
+    private Duration latestSubmitStatusOffset;
+    private Duration submitStatusReminderOffset;
     private Duration sessionStartReminderOffset;
-
-    @Value("${reminder.done}")
     private Duration doneReminderOffset;
+    private Duration startTimeCalculationFakeOffset;
 
     public ZonedDateTime getAnnouncementTime(NextSession session) {
-        return session.getProposedStartTime().plus(reminderFarOffSessionOffset);
+        return session.getProposedStartTime().plus(farOffSessionThreshold);
     }
 
     public boolean isFarOffSession(NextSession session) {
@@ -37,12 +33,12 @@ public class TimingHelper {
 
     public ZonedDateTime getLatestStatusSubmitTime(NextSession session) {
         return session.getProposedStartTime()
-                .plus(latestStatusSubmitOffset);
+                .plus(latestSubmitStatusOffset);
     }
 
     public ZonedDateTime getGentleReminderTime(NextSession session) {
         return session.getProposedStartTime()
-                .plus(gentleReminderOffset);
+                .plus(submitStatusReminderOffset);
     }
 
     public ZonedDateTime getSessionStartReminderTime(NextSession session) {
