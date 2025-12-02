@@ -34,7 +34,7 @@ public class SetUsualTimeCommand extends CommandSpec<SetUsualTimeCommand.Paramet
                         Parameters::setPartyName
                 )
                 .withParameterField(
-                        "dayOfWeek",
+                        "day-of-week",
                         "The day of the week session usually meets",
                         new EnumParameter<>(DayOfWeek.class),
                         Parameters::setDayOfWeek
