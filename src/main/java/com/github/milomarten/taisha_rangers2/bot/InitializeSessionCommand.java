@@ -1,12 +1,7 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
-import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
-import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
-import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
-import com.github.milomarten.taisha_rangers2.command.parameter.SnowflakeParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.*;
@@ -16,7 +11,6 @@ import discord4j.common.util.Snowflake;
 import discord4j.rest.util.AllowedMentions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -37,7 +31,7 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
         this.partyManager = partyManager;
         this.oooManager = oooManager;
         this.timingHelper = timingHelper;
-        setParameterParser(SessionAdminParams.parser(Parameters::new)
+        setParameterParser(SessionIdentityParameters.parser(Parameters::new)
                 .withParameterField(
                         "party",
                         StringParameter.REQUIRED,
@@ -128,7 +122,7 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    public static class Parameters extends SessionAdminParams {
+    public static class Parameters extends SessionIdentityParameters {
         private String partyName;
         private String proposedStart;
     }

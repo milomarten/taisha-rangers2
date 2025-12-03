@@ -1,6 +1,5 @@
 package com.github.milomarten.taisha_rangers2.bot.party;
 
-import com.github.milomarten.taisha_rangers2.bot.SessionAdminParams;
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.EnumParameter;

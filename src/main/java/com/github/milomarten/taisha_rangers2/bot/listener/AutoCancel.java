@@ -1,13 +1,12 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
-import com.github.milomarten.taisha_rangers2.bot.SessionAdminParams;
+import com.github.milomarten.taisha_rangers2.bot.SessionIdentityParameters;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +53,7 @@ public class AutoCancel extends BaseSessionScheduler<Snowflake> implements NextS
     private void cancelSessionIfNecessary(NextSession session) {
         if (session.getStartTime() == null) {
             log.info("Auto-canceling session {}, since no start time was ever provided.", session.getChannel());
-            nextSessionManager.cancelSession(new SessionAdminParams(
+            nextSessionManager.cancelSession(new SessionIdentityParameters(
                     session.getGm(),
                     session.getChannel()
             ));

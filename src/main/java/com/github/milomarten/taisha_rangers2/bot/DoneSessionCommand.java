@@ -21,7 +21,7 @@ public class DoneSessionCommand extends CommandSpec<DoneSessionCommand.Parameter
         super("done", "Mark the session as done");
         this.manager = manager;
 
-        setParameterParser(SessionAdminParams.parser(Parameters::new)
+        setParameterParser(SessionIdentityParameters.parser(Parameters::new)
                 .withParameterField("exp", "The amount of exp gained", IntParameter.REQUIRED, Parameters::setExp)
                 .withParameterField("other", "Anything else gained", StringParameter.DEFAULT_EMPTY_STRING, Parameters::setOtherStuff)
         );
@@ -46,7 +46,7 @@ public class DoneSessionCommand extends CommandSpec<DoneSessionCommand.Parameter
 
     @Getter
     @Setter
-    public static class Parameters extends SessionAdminParams {
+    public static class Parameters extends SessionIdentityParameters {
         private int exp;
         private String otherStuff;
     }

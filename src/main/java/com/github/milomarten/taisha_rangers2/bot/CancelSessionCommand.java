@@ -9,19 +9,19 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component("cancel")
-public class CancelSessionCommand extends CommandSpec<SessionAdminParams> {
+public class CancelSessionCommand extends CommandSpec<SessionIdentityParameters> {
     private final NextSessionManager manager;
 
     public CancelSessionCommand(NextSessionManager manager) {
         super("cancel", "Cancel the upcoming session");
         this.manager = manager;
 
-        setParameterParser(SessionAdminParams.parser());
+        setParameterParser(SessionIdentityParameters.parser());
         setPermissions(Set.of(CommandPermission.MANAGE_CHANNELS));
     }
 
     @Override
-    public CommandResponse doAction(SessionAdminParams params) {
+    public CommandResponse doAction(SessionIdentityParameters params) {
         var worked = manager.cancelSession(params);
         if (worked) {
             return CommandResponse.reply("Session was canceled. Maybe next time!", false);

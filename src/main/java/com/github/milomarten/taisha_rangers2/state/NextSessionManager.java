@@ -2,7 +2,7 @@ package com.github.milomarten.taisha_rangers2.state;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.milomarten.taisha_rangers2.bot.SessionAdminParams;
+import com.github.milomarten.taisha_rangers2.bot.SessionIdentityParameters;
 import com.github.milomarten.taisha_rangers2.exception.*;
 import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
 import com.github.milomarten.taisha_rangers2.persistence.NoOpPersister;
@@ -88,7 +88,7 @@ public class NextSessionManager {
         return session;
     }
 
-    public boolean cancelSession(SessionAdminParams params) {
+    public boolean cancelSession(SessionIdentityParameters params) {
         var session = this.nextSessions.get(params.getChannelId());
         if (session == null) {
             return false;
