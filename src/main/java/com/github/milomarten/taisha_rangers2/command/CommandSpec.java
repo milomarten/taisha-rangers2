@@ -25,8 +25,8 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
     @Setter Localizer localizer = Localizer.IDENTITY;
 
     public ApplicationCommandRequest toDiscordSpec() {
-        var localName = localizer.localize(name);
-        var localDescription = localizer.localize(description);
+        var localName = localizer.localize(name, "name");
+        var localDescription = localizer.localize(description, "description");
         return ApplicationCommandRequest.builder()
                 .name(localName.key())
                 .nameLocalizationsOrNull(localName.getDiscordifiedTranslations())

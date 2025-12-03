@@ -24,8 +24,8 @@ public record OneParameterParser<PARAM>(String name, String description,
 
     @Override
     public List<ApplicationCommandOptionData> toDiscordSpec(Localizer localizer) {
-        var localName = localizer.localize(name);
-        var localDescription = localizer.localize(description);
+        var localName = localizer.localize(name, "name");
+        var localDescription = localizer.localize(description, "description");
         var builder = ApplicationCommandOptionData.builder()
                 .name(localName.key())
                 .nameLocalizationsOrNull(localName.getDiscordifiedTranslations())

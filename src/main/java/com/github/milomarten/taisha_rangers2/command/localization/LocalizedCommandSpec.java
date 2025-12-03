@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class LocalizedCommandSpec<PARAM> extends CommandSpec<PARAM> {
     protected LocalizationFactory localizationFactory;
 
-    public LocalizedCommandSpec(String name, String description) {
-        super(name, description);
+    public LocalizedCommandSpec(String id) {
+        super(id, id);
     }
 
     @Autowired
     public void setLocalizationFactory(LocalizationFactory localizationFactory) {
         this.localizationFactory = localizationFactory;
-        this.setLocalizer(localizationFactory);
+        this.setLocalizer(localizationFactory.withPrefix("command"));
     }
 }

@@ -1,6 +1,5 @@
 package com.github.milomarten.taisha_rangers2.command.parameter;
 
-import com.github.milomarten.taisha_rangers2.command.localization.LocalizedStrings;
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -67,7 +66,7 @@ public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
     public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer) {
         var choices = Arrays.stream(universe)
                 .map(e -> {
-                    var localized = localizer.localize(namer.apply(e));
+                    var localized = localizer.localize(namer.apply(e), "name");
                     return (ApplicationCommandOptionChoiceData) ApplicationCommandOptionChoiceData.builder()
                             .name(localized.key())
                             .nameLocalizationsOrNull(localized.getDiscordifiedTranslations())

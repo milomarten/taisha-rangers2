@@ -32,21 +32,19 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
     private final TimingHelper timingHelper;
 
     public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager, OutOfOfficeManager oooManager, TimingHelper timingHelper) {
-        super("command.init.name", "command.init.description");
+        super("init");
         this.manager = manager;
         this.partyManager = partyManager;
         this.oooManager = oooManager;
         this.timingHelper = timingHelper;
         setParameterParser(SessionAdminParams.parser(Parameters::new)
                 .withParameterField(
-                        "party.name",
-                        "party.description",
+                        "party",
                         StringParameter.REQUIRED,
                         Parameters::setPartyName
                 )
                 .withParameterField(
-                        "proposed-start-time.name",
-                        "proposed-start-time.description",
+                        "proposed-start-time",
                         StringParameter.DEFAULT_EMPTY_STRING,
                         Parameters::setProposedStart
                 )

@@ -110,6 +110,26 @@ public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
     }
 
     /**
+     * Add a basic Parameter, which extracts a parameter from the command usage event and sets it in the POJO
+     * Behind the scenes, this uses OneParameterParser; as such, it will create one parameter that can be
+     * filled in by a user.
+     * The name and description of the parameter will be the id field. This is usually not helpful, but Localization
+     * frameworks may use this to automatically resolve actual values from an external source.
+     * @param id The name of the parameter
+     * @param info The ParameterInfo, which includes type and validation of the parameter
+     * @param setter The method to set that value on the POJO
+     * @return This instance, for chaining
+     * @param <FIELD> The type of the field being set
+     */
+    public <FIELD> PojoParameterParser<PARAM> withParameterField(
+            String id, ParameterInfo<FIELD> info, BiConsumer<PARAM, FIELD> setter) {
+        return withParameterField(
+                new OneParameterParser<>(id, id, info),
+                setter
+        );
+    }
+
+    /**
      * Adds a setter, which generically calls a child ParameterParser and a setter to set that value on the POJO.
      * This allows, potentially, a POJO which uses another nested POJO within it.
      * @param parser A child parser to use
