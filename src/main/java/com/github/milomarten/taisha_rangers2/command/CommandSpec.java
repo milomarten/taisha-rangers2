@@ -17,16 +17,23 @@ import java.util.Set;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public abstract class CommandSpec<PARAM> implements CommandHandler {
-    private final String name;
-    private final String description;
+    private final LocalizedStrings name;
+    private final LocalizedStrings description;
     @Setter
     ParameterParser<PARAM> parameterParser = NoParameterParser.create();
     @Setter Set<CommandPermission> permissions = Set.of();
 
+    public CommandSpec(String name, String description) {
+        this.name = LocalizedStrings.of(name);
+        this.description = LocalizedStrings.of(description);
+    }
+
     public ApplicationCommandRequest toDiscordSpec() {
         return ApplicationCommandRequest.builder()
-                .name(name)
-                .description(description)
+                .name(name.key())
+                .nameLocalizationsOrNull(name.getDiscordifiedTranslations())
+                .description(description.key())
+                .descriptionLocalizationsOrNull(description.getDiscordifiedTranslations())
                 .addAllOptions(parameterParser.toDiscordSpec())
                 .defaultMemberPermissions(computeMemberPermissions())
                 .build();
@@ -50,7 +57,7 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
                 });
     }
 
-    public abstract CommandResponse doAction(PARAM params);
+    protected abstract CommandResponse doAction(PARAM params);
 
     private Optional<String> computeMemberPermissions() {
         if (permissions.isEmpty()) {

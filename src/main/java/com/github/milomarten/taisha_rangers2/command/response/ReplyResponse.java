@@ -17,9 +17,13 @@ public class ReplyResponse implements CommandResponse {
 
     @Override
     public Mono<?> respond(ChatInputInteractionEvent event) {
-        return event.reply(message)
+        return event.reply(getMessage(event))
                 .withEphemeral(ephemeral)
                 .withAllowedMentions(Possible.ofNullable(allowedMentions));
+    }
+
+    protected String getMessage(ChatInputInteractionEvent event) {
+        return message;
     }
 
     public ReplyResponse ephemeral(boolean ephemeral) {
