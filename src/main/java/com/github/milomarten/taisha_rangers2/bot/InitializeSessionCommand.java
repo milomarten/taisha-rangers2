@@ -7,10 +7,7 @@ import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.SnowflakeParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
-import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
-import com.github.milomarten.taisha_rangers2.state.OutOfOfficeManager;
-import com.github.milomarten.taisha_rangers2.state.Party;
-import com.github.milomarten.taisha_rangers2.state.PartyManager;
+import com.github.milomarten.taisha_rangers2.state.*;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
@@ -20,10 +17,8 @@ import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component("init")
@@ -49,7 +44,7 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
                 .withParameterField(
                         "proposed-start-time",
                         "The proposed start time for session.",
-                        StringParameter.DEFAULT_EMPTY_STRING.map(DateUtil::parseCasualDateTime),
+                        StringParameter.DEFAULT_EMPTY_STRING,
                         Parameters::setProposedStart
                 )
         );
@@ -78,11 +73,15 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
             );
         }
 
-        var proposedStart = params.proposedStart;
+        var proposedStart = parseZDTFromString(params.proposedStart);
         if (proposedStart == null) {
-            proposedStart = party.getUsualTime().getNextPossibleTime();
-            if (proposedStart == null) {
+            var usualTime = party.getUsualTime();
+            if (usualTime == null) {
                 return CommandResponse.reply("No time provided, and the party doesn't have a standard time. One must be provided", true);
+            }
+            proposedStart = parseTimeFromStringAndContext(params.proposedStart, usualTime);
+            if (proposedStart == null) {
+                proposedStart = usualTime.getNextPossibleTime();
             }
         }
 
@@ -115,6 +114,21 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         }
     }
 
+    private ZonedDateTime parseZDTFromString(String value) {
+        try {
+            return DateUtil.parseCasualDateTime(value);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private ZonedDateTime parseTimeFromStringAndContext(String time, PartyTime context) {
+        var timeParsed = DateUtil.parseCasualTime(time);
+        if (timeParsed == null) { return null; }
+        return context.getNextPossibleTime()
+                .with(timeParsed);
+    }
+
     private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
         var whoOut = new ArrayList<>(oooManager.whoIsOutOn(when.toLocalDate()));
         whoOut.retainAll(party.getPlayers());
@@ -125,6 +139,6 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
     @EqualsAndHashCode(callSuper = true)
     public static class Parameters extends SessionAdminParams {
         private String partyName;
-        private ZonedDateTime proposedStart;
+        private String proposedStart;
     }
 }

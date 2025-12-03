@@ -26,13 +26,7 @@ public class SetUsualTimeCommand extends CommandSpec<SetUsualTimeCommand.Paramet
     public SetUsualTimeCommand(PartyManager partyManager) {
         super("set-usual-time", "Set the usual time session happens");
         this.partyManager = partyManager;
-        setParameterParser(SessionAdminParams.parser(Parameters::new)
-                .withParameterField(
-                        "party",
-                        "The name of the party to update",
-                        StringParameter.REQUIRED,
-                        Parameters::setPartyName
-                )
+        setParameterParser(PartyAdminParameters.parser(Parameters::new)
                 .withParameterField(
                         "day-of-week",
                         "The day of the week session usually meets",
@@ -73,8 +67,7 @@ public class SetUsualTimeCommand extends CommandSpec<SetUsualTimeCommand.Paramet
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    public static class Parameters extends SessionAdminParams {
-        private String partyName;
+    public static class Parameters extends PartyAdminParameters {
         private DayOfWeek dayOfWeek;
         private LocalTime time;
         private ZoneId timezone;

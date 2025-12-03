@@ -10,6 +10,7 @@ import com.github.milomarten.taisha_rangers2.state.PartyManager;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -24,14 +25,7 @@ public class AddPlayerCommand extends CommandSpec<AddPlayerCommand.Parameters> {
         this.manager = manager;
 
         setParameterParser(
-                new PojoParameterParser<>(Parameters::new)
-                        .withParameterField(PojoParameterParser.userId(), Parameters::setUserId)
-                        .withParameterField(
-                                "party-name",
-                                "The name of the party to add to",
-                                StringParameter.REQUIRED,
-                                Parameters::setPartyName
-                        )
+                PartyAdminParameters.parser(Parameters::new)
                         .withParameterField(
                                 "player",
                                 "The player to add to the party",
@@ -44,14 +38,14 @@ public class AddPlayerCommand extends CommandSpec<AddPlayerCommand.Parameters> {
 
     @Override
     public CommandResponse doAction(Parameters params) {
-        return manager.updatePartyAndReturn(params.partyName, party -> {
-            if (!Objects.equals(party.getDm(), params.userId)) {
+        return manager.updatePartyAndReturn(params.getPartyName(), party -> {
+            if (!Objects.equals(party.getDm(), params.getUserId())) {
                 return CommandResponse.reply("Can only add players to your party!", true);
             }
             var worked = party.getPlayers().add(params.playerToAdd);
             if (worked) {
                 return CommandResponse.reply(
-                        String.format("Added %s to the %s party!", FormatUtils.pingUser(params.playerToAdd), params.partyName),
+                        String.format("Added %s to the %s party!", FormatUtils.pingUser(params.playerToAdd), params.getPartyName()),
                         false
                 );
             } else {
@@ -64,9 +58,8 @@ public class AddPlayerCommand extends CommandSpec<AddPlayerCommand.Parameters> {
     }
 
     @Data
-    public static class Parameters {
-        private Snowflake userId;
-        private String partyName;
+    @EqualsAndHashCode(callSuper = true)
+    public static class Parameters extends PartyAdminParameters {
         private Snowflake playerToAdd;
     }
 }
