@@ -44,6 +44,11 @@ public class LocalizationFactory implements Localizer {
         return createLocalizedString(key);
     }
 
+    @Override
+    public LocalizedStrings localize(String key, String suffix) {
+        return localize(key + "." + suffix);
+    }
+
     public static class LocalizedReplyResponse extends ReplyResponse {
         private final String key;
         private final Object[] args;

@@ -25,8 +25,8 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
     @Setter Localizer localizer = Localizer.IDENTITY;
 
     public ApplicationCommandRequest toDiscordSpec() {
-        var localName = localizer.withPrefix(name).localize("name");
-        var localDescription = localizer.withPrefix(description).localize("description");
+        var localName = localizer.localize(name, "name");
+        var localDescription = localizer.localize(description, "description");
         return ApplicationCommandRequest.builder()
                 .name(localName.key())
                 .nameLocalizationsOrNull(localName.getDiscordifiedTranslations())
@@ -45,12 +45,7 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
                 .flatMap(params -> Mono.fromCallable(() -> doAction(params)))
                 .flatMap(cr -> cr.respond(event))
                 .then()
-                .onErrorResume(ex -> {
-                    log.error("Error running command. Telling user...", ex);
-                    return CommandResponse.reply(ex.getMessage(), true)
-                            .respond(event)
-                            .then();
-                })
+                .onErrorResume(ex -> handleException(event, ex))
                 .onErrorResume(ex -> {
                     log.error("Error sending error message. Doing nothing...", ex);
                     return Mono.empty();
@@ -58,6 +53,13 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
     }
 
     protected abstract CommandResponse doAction(PARAM params);
+
+    protected Mono<Void> handleException(ChatInputInteractionEvent event, Throwable ex) {
+        log.error("Error running command. Telling user...", ex);
+        return CommandResponse.reply(ex.getMessage(), true)
+                .respond(event)
+                .then();
+    }
 
     private Optional<String> computeMemberPermissions() {
         if (permissions.isEmpty()) {

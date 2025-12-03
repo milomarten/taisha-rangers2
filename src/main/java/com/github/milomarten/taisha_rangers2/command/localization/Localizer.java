@@ -9,6 +9,7 @@ public interface Localizer {
     Localizer IDENTITY = new IdentityLocalizer();
 
     LocalizedStrings localize(String key);
+    LocalizedStrings localize(String key, String suffix);
 
     default Localizer withPrefix(String prefix) {
         return new BreadcrumbLocalizer(this, prefix);
@@ -18,6 +19,11 @@ public interface Localizer {
         @Override
         public LocalizedStrings localize(String key) {
             return LocalizedStrings.of(key);
+        }
+
+        @Override
+        public LocalizedStrings localize(String key, String suffix) {
+            return localize(key);
         }
 
         @Override
@@ -46,6 +52,11 @@ public interface Localizer {
         @Override
         public LocalizedStrings localize(String key) {
             return nested.localize(String.join(".", crumbs) + "." + key);
+        }
+
+        @Override
+        public LocalizedStrings localize(String key, String suffix) {
+            return nested.localize(String.join(".", crumbs) + "." + key, suffix);
         }
     }
 }
