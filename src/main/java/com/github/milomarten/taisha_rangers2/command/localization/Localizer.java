@@ -8,7 +8,7 @@ import java.util.List;
 public interface Localizer {
     Localizer IDENTITY = new IdentityLocalizer();
 
-    LocalizedStrings localize(String key, String suffix);
+    LocalizedStrings localize(String key);
 
     default Localizer withPrefix(String prefix) {
         return new BreadcrumbLocalizer(this, prefix);
@@ -16,7 +16,9 @@ public interface Localizer {
 
     class IdentityLocalizer implements Localizer {
         @Override
-        public LocalizedStrings localize(String key, String suffix) { return LocalizedStrings.of(key); }
+        public LocalizedStrings localize(String key) {
+            return LocalizedStrings.of(key);
+        }
 
         @Override
         public Localizer withPrefix(String prefix) {
@@ -42,8 +44,8 @@ public interface Localizer {
         }
 
         @Override
-        public LocalizedStrings localize(String key, String suffix) {
-            return nested.localize(String.join(".", crumbs) + "." + key, suffix);
+        public LocalizedStrings localize(String key) {
+            return nested.localize(String.join(".", crumbs) + "." + key);
         }
     }
 }

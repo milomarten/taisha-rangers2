@@ -40,8 +40,8 @@ public class LocalizationFactory implements Localizer {
     }
 
     @Override
-    public LocalizedStrings localize(String key, String suffix) {
-        return createLocalizedString(key + "." + suffix);
+    public LocalizedStrings localize(String key) {
+        return createLocalizedString(key);
     }
 
     public static class LocalizedReplyResponse extends ReplyResponse {

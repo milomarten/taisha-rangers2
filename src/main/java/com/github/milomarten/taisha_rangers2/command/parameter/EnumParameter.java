@@ -66,7 +66,7 @@ public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
     public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer) {
         var choices = Arrays.stream(universe)
                 .map(e -> {
-                    var localized = localizer.localize(namer.apply(e), "name");
+                    var localized = localizer.localize(namer.apply(e));
                     return (ApplicationCommandOptionChoiceData) ApplicationCommandOptionChoiceData.builder()
                             .name(localized.key())
                             .nameLocalizationsOrNull(localized.getDiscordifiedTranslations())
