@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameters;
 
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 
@@ -21,5 +22,5 @@ public interface ParameterParser<PARAM> {
      * Create the parameter specs for the parameters that make up this object
      * @return The list of ApplicationCommandOptionData specs for the various fields desired
      */
-    List<ApplicationCommandOptionData> toDiscordSpec();
+    List<ApplicationCommandOptionData> toDiscordSpec(Localizer localizer);
 }

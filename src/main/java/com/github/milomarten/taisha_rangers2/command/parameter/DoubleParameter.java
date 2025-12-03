@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameter;
 
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
@@ -56,7 +57,7 @@ public class DoubleParameter implements ParameterInfo<Double> {
     }
 
     @Override
-    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder) {
+    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer) {
         return builder
                 .type(ApplicationCommandOption.Type.NUMBER.getValue())
                 .required(defaultValue == null)

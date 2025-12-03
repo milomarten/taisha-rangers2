@@ -1,6 +1,7 @@
 package com.github.milomarten.taisha_rangers2.command.parameter;
 
-import com.github.milomarten.taisha_rangers2.command.LocalizedStrings;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedStrings;
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
@@ -23,7 +24,7 @@ import java.util.function.Function;
 public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
     private final E[] universe;
     private final E defaultValue;
-    private Function<E, LocalizedStrings> namer = (val) -> LocalizedStrings.of(val.name());
+    private Function<E, String> namer = E::name;
 
     /**
      * Create a required Enum parameter
@@ -50,16 +51,6 @@ public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
      * @return This instance, for chaining.
      */
     public EnumParameter<E> namer(Function<E, String> namer) {
-        this.namer = e -> LocalizedStrings.of(namer.apply(e));
-        return this;
-    }
-
-    /**
-     * Specify the way to convert the enum into a human-friendly localized string.
-     * @param namer The naming function to use
-     * @return This instance, for chaining.
-     */
-    public EnumParameter<E> localizedNamer(Function<E, LocalizedStrings> namer) {
         this.namer = namer;
         return this;
     }
@@ -73,10 +64,10 @@ public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
     }
 
     @Override
-    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder) {
+    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer) {
         var choices = Arrays.stream(universe)
                 .map(e -> {
-                    var localized = namer.apply(e);
+                    var localized = localizer.localize(namer.apply(e));
                     return (ApplicationCommandOptionChoiceData) ApplicationCommandOptionChoiceData.builder()
                             .name(localized.key())
                             .nameLocalizationsOrNull(localized.getDiscordifiedTranslations())

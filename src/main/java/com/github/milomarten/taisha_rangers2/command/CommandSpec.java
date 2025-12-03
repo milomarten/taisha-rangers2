@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command;
 
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import com.github.milomarten.taisha_rangers2.command.parameters.NoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.parameters.ParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
@@ -17,24 +18,23 @@ import java.util.Set;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public abstract class CommandSpec<PARAM> implements CommandHandler {
-    private final LocalizedStrings name;
-    private final LocalizedStrings description;
-    @Setter
-    ParameterParser<PARAM> parameterParser = NoParameterParser.create();
+    private final String name;
+    private final String description;
+    @Setter ParameterParser<PARAM> parameterParser = NoParameterParser.create();
     @Setter Set<CommandPermission> permissions = Set.of();
-
-    public CommandSpec(String name, String description) {
-        this.name = LocalizedStrings.of(name);
-        this.description = LocalizedStrings.of(description);
-    }
+    @Setter Localizer localizer = Localizer.IDENTITY;
 
     public ApplicationCommandRequest toDiscordSpec() {
+        var localName = localizer.localize(name);
+        var localDescription = localizer.localize(description);
         return ApplicationCommandRequest.builder()
-                .name(name.key())
-                .nameLocalizationsOrNull(name.getDiscordifiedTranslations())
-                .description(description.key())
-                .descriptionLocalizationsOrNull(description.getDiscordifiedTranslations())
-                .addAllOptions(parameterParser.toDiscordSpec())
+                .name(localName.key())
+                .nameLocalizationsOrNull(localName.getDiscordifiedTranslations())
+                .description(localDescription.key())
+                .descriptionLocalizationsOrNull(localDescription.getDiscordifiedTranslations())
+                .addAllOptions(parameterParser.toDiscordSpec(
+                        localizer.withPrefix(name).withPrefix("parameter")
+                ))
                 .defaultMemberPermissions(computeMemberPermissions())
                 .build();
     }

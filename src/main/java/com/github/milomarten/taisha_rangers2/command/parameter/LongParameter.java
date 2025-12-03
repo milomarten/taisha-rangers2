@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameter;
 
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 import discord4j.discordjson.possible.Possible;
@@ -53,7 +54,7 @@ public class LongParameter implements ParameterInfo<Long> {
     }
 
     @Override
-    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder) {
+    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer) {
         return builder
                 .required(defaultValue == null)
                 .minValue(Possible.ofNullable(minValue == null ? null : minValue.doubleValue()))

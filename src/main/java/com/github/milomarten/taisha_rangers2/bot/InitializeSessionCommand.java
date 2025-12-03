@@ -2,6 +2,8 @@ package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.SnowflakeParameter;
@@ -14,6 +16,7 @@ import discord4j.common.util.Snowflake;
 import discord4j.rest.util.AllowedMentions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -22,28 +25,28 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component("init")
-public class InitializeSessionCommand extends CommandSpec<InitializeSessionCommand.Parameters> {
+public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSessionCommand.Parameters> {
     private final NextSessionManager manager;
     private final PartyManager partyManager;
     private final OutOfOfficeManager oooManager;
     private final TimingHelper timingHelper;
 
     public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager, OutOfOfficeManager oooManager, TimingHelper timingHelper) {
-        super("init", "Create an upcoming session");
+        super("command.init.name", "command.init.description");
         this.manager = manager;
         this.partyManager = partyManager;
         this.oooManager = oooManager;
         this.timingHelper = timingHelper;
         setParameterParser(SessionAdminParams.parser(Parameters::new)
                 .withParameterField(
-                        "party",
-                        "The party in this session",
+                        "party.name",
+                        "party.description",
                         StringParameter.REQUIRED,
                         Parameters::setPartyName
                 )
                 .withParameterField(
-                        "proposed-start-time",
-                        "The proposed start time for session.",
+                        "proposed-start-time.name",
+                        "proposed-start-time.description",
                         StringParameter.DEFAULT_EMPTY_STRING,
                         Parameters::setProposedStart
                 )
@@ -55,29 +58,24 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
     public CommandResponse doAction(InitializeSessionCommand.Parameters params) {
         var partyMaybe = partyManager.getParty(params.partyName);
         if (partyMaybe.isEmpty()) {
-            return CommandResponse.reply(
-                    String.format("No party with name %s in my system. If it's a new party, you have to make it using another command", params.partyName),
-                    true
-            );
+            return localizationFactory.createResponse("errors.party.no-match", params.partyName)
+                    .ephemeral(true);
         }
         var party = partyMaybe.get();
         if (!Objects.equals(params.getUserId(), party.getDm())) {
-            return CommandResponse.reply(
-                    "Only the DM can create a session for this party",
-                    true
-            );
+            return localizationFactory.createResponse("errors.party.no-access", params.partyName)
+                    .ephemeral(true);
         } else if (party.getPlayers().isEmpty()) {
-            return CommandResponse.reply(
-                    "Party has no players! Please add at least one player.",
-                    true
-            );
+            return localizationFactory.createResponse("errors.party.no-members", params.partyName)
+                    .ephemeral(true);
         }
 
         var proposedStart = parseZDTFromString(params.proposedStart);
         if (proposedStart == null) {
             var usualTime = party.getUsualTime();
             if (usualTime == null) {
-                return CommandResponse.reply("No time provided, and the party doesn't have a standard time. One must be provided", true);
+                return localizationFactory.createResponse("command.init.error.unable-to-deduce-time")
+                        .ephemeral(true);
             }
             proposedStart = parseTimeFromStringAndContext(params.proposedStart, usualTime);
             if (proposedStart == null) {
@@ -88,10 +86,8 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         var ooos = checkOOOs(party, proposedStart);
         if (!ooos.isEmpty()) {
             var asPings = ooos.stream().map(FormatUtils::pingUser).collect(Collectors.joining(" "));
-            return CommandResponse.reply(
-                    String.format("Can't have session that day, players are OOO: %s", asPings),
-                    true
-            );
+            return localizationFactory.createResponse("command.init.error.ooo-present", asPings)
+                    .ephemeral(true);
         }
 
         var session = manager.createSession(
@@ -101,15 +97,12 @@ public class InitializeSessionCommand extends CommandSpec<InitializeSessionComma
         );
 
         if (timingHelper.isFarOffSession(session)) {
-            return CommandResponse.reply(
-                    String.format("Scheduled a session for %s. It's a ways off, so I'll announce it closer to time", FormatUtils.formatShortDateTime(proposedStart)),
-                    true
-            );
+            return localizationFactory.createResponse("command.init.response.success-far-off", FormatUtils.formatShortDateTime(proposedStart))
+                    .ephemeral(true);
         } else {
             var pingText = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
-            var text = String.format("Hey %s! A session has been scheduled for %s. Let me know if you can join, by typing `/yes` or `/no`!",
-                    pingText, FormatUtils.formatShortDateTime(proposedStart));
-            return CommandResponse.reply(text, false)
+            return localizationFactory.createResponse("command.init.response.success", pingText, FormatUtils.formatShortDateTime(proposedStart))
+                    .ephemeral(false)
                     .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
         }
     }

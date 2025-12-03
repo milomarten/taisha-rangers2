@@ -1,4 +1,4 @@
-package com.github.milomarten.taisha_rangers2.command;
+package com.github.milomarten.taisha_rangers2.command.localization;
 
 import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -13,7 +13,7 @@ import java.util.Locale;
  */
 @RequiredArgsConstructor
 @Service
-public class LocalizationFactory {
+public class LocalizationFactory implements Localizer {
     private final MessageSource messageSource;
 
     /**
@@ -24,7 +24,7 @@ public class LocalizationFactory {
      * @return A LocalizedString containing the message requested
      */
     public LocalizedStrings createLocalizedString(String key, Object... args) {
-        return LocalizedStrings.of(messageSource.getMessage(key, args, Locale.US));
+        return LocalizedStrings.of(messageSource.getMessage(key, args, Locale.ROOT));
     }
 
     /**
@@ -37,6 +37,11 @@ public class LocalizationFactory {
      */
     public LocalizedReplyResponse createResponse(String key, Object... args) {
         return new LocalizedReplyResponse(key, args, this.messageSource);
+    }
+
+    @Override
+    public LocalizedStrings localize(String key) {
+        return createLocalizedString(key);
     }
 
     public static class LocalizedReplyResponse extends ReplyResponse {

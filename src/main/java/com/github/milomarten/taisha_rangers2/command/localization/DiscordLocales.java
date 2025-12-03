@@ -1,4 +1,4 @@
-package com.github.milomarten.taisha_rangers2.command;
+package com.github.milomarten.taisha_rangers2.command.localization;
 
 import lombok.RequiredArgsConstructor;
 

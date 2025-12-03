@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameter;
 
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -38,7 +39,7 @@ public class SnowflakeParameter implements ParameterInfo<Snowflake> {
     }
 
     @Override
-    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder) {
+    public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer) {
         return builder
                 .type(this.type.value)
                 .required(defaultValue == null);

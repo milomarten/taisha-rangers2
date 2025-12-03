@@ -1,4 +1,4 @@
-package com.github.milomarten.taisha_rangers2.command;
+package com.github.milomarten.taisha_rangers2.command.localization;
 
 import java.util.Locale;
 import java.util.Map;

@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameters;
 
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 
@@ -20,7 +21,7 @@ public record OneNonParameterParser<PARAM>(
     }
 
     @Override
-    public List<ApplicationCommandOptionData> toDiscordSpec() {
+    public List<ApplicationCommandOptionData> toDiscordSpec(Localizer localizer) {
         return List.of();
     }
 }

@@ -1,0 +1,43 @@
+package com.github.milomarten.taisha_rangers2.command.localization;
+
+import lombok.RequiredArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public interface Localizer {
+    Localizer IDENTITY = new IdentityLocalizer();
+
+    LocalizedStrings localize(String key);
+
+    default Localizer withPrefix(String prefix) {
+        return new BreadcrumbLocalizer(this, prefix);
+    }
+
+    class IdentityLocalizer implements Localizer {
+        @Override
+        public LocalizedStrings localize(String key) { return LocalizedStrings.of(key); }
+
+        @Override
+        public Localizer withPrefix(String prefix) {
+            return this;
+        }
+    }
+
+    @RequiredArgsConstructor
+    class BreadcrumbLocalizer implements Localizer {
+        private final List<String> crumbs;
+        private final Localizer nested;
+
+        public BreadcrumbLocalizer(Localizer nested, String nextCrumb) {
+            this.crumbs = nested instanceof BreadcrumbLocalizer bc ? new ArrayList<>(bc.crumbs) : new ArrayList<>();
+            this.crumbs.add(nextCrumb);
+            this.nested = nested;
+        }
+
+        @Override
+        public LocalizedStrings localize(String key) {
+            return nested.localize(String.join(".", crumbs));
+        }
+    }
+}

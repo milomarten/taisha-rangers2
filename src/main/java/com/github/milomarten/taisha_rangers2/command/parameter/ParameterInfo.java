@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.parameter;
 
+import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 
@@ -28,10 +29,12 @@ public interface ParameterInfo<T> {
 
     /**
      * Decorate the parameter spec with additional info
-     * @param builder The builder to build on top of
+     *
+     * @param builder   The builder to build on top of
+     * @param localizer
      * @return A builder with features specific to this ParameterInfo added
      */
-    ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder);
+    ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer);
 
     /**
      * Add a mapping step to a basic ParameterInfo which converts a type into another type.
@@ -49,8 +52,8 @@ public interface ParameterInfo<T> {
             }
 
             @Override
-            public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder) {
-                return self.decorate(builder);
+            public ImmutableApplicationCommandOptionData.Builder decorate(ImmutableApplicationCommandOptionData.Builder builder, Localizer localizer) {
+                return self.decorate(builder, localizer);
             }
         };
     }

@@ -11,9 +11,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Slf4j
+@Component
+@ConditionalOnBean(GatewayDiscordClient.class)
 public class AutoCancel extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient gatewayDiscordClient;
     @Setter private NextSessionManager nextSessionManager;
