@@ -42,6 +42,9 @@ public class TimeSuggestMessage extends BaseSessionScheduler<Snowflake> implemen
         if (session.getStartTime() == null && session.allPlayersRespondedYes()) {
             log.info("Need to suggest start time!");
             fireTimeSuggestMessage(session);
+        } else {
+            log.info("{}", session.getStartTime());
+            log.info("{}", session.allPlayersRespondedYes());
         }
     }
 
