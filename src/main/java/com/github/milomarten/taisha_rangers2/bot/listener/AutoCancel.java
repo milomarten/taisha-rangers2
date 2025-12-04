@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 @Component
-@ConditionalOnBean(GatewayDiscordClient.class)
+//@ConditionalOnBean(GatewayDiscordClient.class)
 public class AutoCancel extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient gatewayDiscordClient;
     @Setter private NextSessionManager nextSessionManager;

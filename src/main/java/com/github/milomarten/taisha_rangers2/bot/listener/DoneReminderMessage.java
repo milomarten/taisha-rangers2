@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-@ConditionalOnBean(GatewayDiscordClient.class)
+//@ConditionalOnBean(GatewayDiscordClient.class)
 public class DoneReminderMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter private NextSessionManager nextSessionManager;

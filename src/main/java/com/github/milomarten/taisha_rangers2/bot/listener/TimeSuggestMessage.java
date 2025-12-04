@@ -25,7 +25,7 @@ import java.util.Objects;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnBean(GatewayDiscordClient.class)
+//@ConditionalOnBean(GatewayDiscordClient.class)
 public class TimeSuggestMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     private final TimingHelper timingHelper;

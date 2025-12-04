@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-@ConditionalOnBean(GatewayDiscordClient.class)
+//@ConditionalOnBean(GatewayDiscordClient.class)
 public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter

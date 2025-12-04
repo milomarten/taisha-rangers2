@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnBean(GatewayDiscordClient.class)
+//@ConditionalOnBean(GatewayDiscordClient.class)
 public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter private NextSessionManager nextSessionManager;

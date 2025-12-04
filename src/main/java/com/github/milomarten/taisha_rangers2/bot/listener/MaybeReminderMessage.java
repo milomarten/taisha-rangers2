@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnBean(GatewayDiscordClient.class)
+//@ConditionalOnBean(GatewayDiscordClient.class)
 public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMessage.PlayerId> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter private NextSessionManager nextSessionManager;
