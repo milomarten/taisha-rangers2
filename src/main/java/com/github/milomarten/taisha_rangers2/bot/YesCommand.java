@@ -44,7 +44,7 @@ public class YesCommand extends CommandSpec<YesCommand.Parameters> {
                 .withParameterField(
                         "timezone",
                         "Indicate the timezone that your time is. Can be a tzid, or ET/CT/MT/PT.",
-                        StringParameter.REQUIRED
+                        StringParameter.DEFAULT_EMPTY_STRING
                                 .map(DateUtil::parseCasualTimezone),
                         Parameters::setTimezone
                 )

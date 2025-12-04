@@ -120,7 +120,8 @@ public class DateUtil {
      * @return The ZoneId parsed
      */
     public static ZoneId parseCasualTimezone(String value) {
-        return Objects.requireNonNullElseGet(OVERRIDES.get(value), () -> ZoneId.of(value));
+        if (value.isEmpty()) return null;
+        return Objects.requireNonNullElseGet(OVERRIDES.get(value.toUpperCase()), () -> ZoneId.of(value));
     }
 
     /**

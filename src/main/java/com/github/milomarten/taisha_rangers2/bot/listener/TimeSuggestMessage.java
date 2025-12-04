@@ -33,8 +33,14 @@ public class TimeSuggestMessage extends BaseSessionScheduler<Snowflake> implemen
     private NextSessionManager nextSessionManager;
 
     @Override
+    public void onLoad(NextSession nextSession) {
+        this.onUpdate(nextSession);
+    }
+
+    @Override
     public void onUpdate(NextSession session) {
         if (session.getStartTime() == null && session.allPlayersRespondedYes()) {
+            log.info("Need to suggest start time!");
             fireTimeSuggestMessage(session);
         }
     }
@@ -98,6 +104,7 @@ public class TimeSuggestMessage extends BaseSessionScheduler<Snowflake> implemen
         // Frequently, the bot spits out the start calculation before it even responds to the final
         // player. Adding a tiny delay helps it feel a bit more natural, even though it's
         // totally unnecessary.
+        log.info(message);
         Mono.delay(timingHelper.getStartTimeCalculationFakeOffset())
                 .then(client.getChannelById(session.getChannel()))
                 .cast(TextChannel.class)
