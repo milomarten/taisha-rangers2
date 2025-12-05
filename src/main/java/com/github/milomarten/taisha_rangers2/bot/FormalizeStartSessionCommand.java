@@ -18,7 +18,7 @@ public class FormalizeStartSessionCommand extends AbstractSessionAdminCommand<Fo
         setParameterParser(SessionIdentityParameters.parser(Parameters::new)
                 .withParameterField(
                         "start-time",
-                        StringParameter.REQUIRED.map(DateUtil::parseCasualDateTime),
+                        StringParameter.REQUIRED,
                         Parameters::setEstimatedStart
                 )
         );
@@ -26,13 +26,14 @@ public class FormalizeStartSessionCommand extends AbstractSessionAdminCommand<Fo
 
     @Override
     protected CommandResponse doProtectedAction(Parameters params, NextSession session) {
-        session.setStartTime(params.estimatedStart);
+        var estimatedStart = DateUtil.parseCasualDateTime(params.getEstimatedStart(), session.getParty().getUsualTime());
+        session.setStartTime(estimatedStart);
         return localizationFactory.createResponse("command.set-start.response", FormatUtils.formatShortDateTime(session.getStartTime()));
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
     public static class Parameters extends SessionIdentityParameters {
-        private ZonedDateTime estimatedStart;
+        private String estimatedStart;
     }
 }

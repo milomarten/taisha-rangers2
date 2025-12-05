@@ -14,7 +14,6 @@ import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,17 +61,16 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
                     .ephemeral(true);
         }
 
-        var proposedStart = parseZDTFromString(params.proposedStart);
-        if (proposedStart == null) {
-            var usualTime = party.getUsualTime();
-            if (usualTime == null) {
-                return localizationFactory.createResponse("command.init.error.unable-to-deduce-time")
-                        .ephemeral(true);
-            }
-            proposedStart = parseTimeFromStringAndContext(params.proposedStart, usualTime);
-            if (proposedStart == null) {
-                proposedStart = usualTime.getNextPossibleTime();
-            }
+        ZonedDateTime proposedStart;
+        try {
+            proposedStart =
+                    params.proposedStart.isEmpty() ?
+                            party.getUsualTime().getNextPossibleTime() :
+                            parseTimestampFromStringAndOptionalContext(params.proposedStart, party.getUsualTime());
+            Objects.requireNonNull(proposedStart); // solely to pop down into the catch block.
+        } catch (RuntimeException e) {
+            return localizationFactory.createResponse("command.init.error.unable-to-deduce-time")
+                    .ephemeral(true);
         }
 
         var ooos = checkOOOs(party, proposedStart);
@@ -99,11 +97,11 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
         }
     }
 
-    private ZonedDateTime parseZDTFromString(String value) {
+    private ZonedDateTime parseTimestampFromStringAndOptionalContext(String value, PartyTime usualTime) {
         try {
-            return DateUtil.parseCasualDateTime(value);
-        } catch (DateTimeParseException e) {
-            return null;
+            return DateUtil.parseCasualDateTime(value, usualTime);
+        } catch (RuntimeException e) {
+            return parseTimeFromStringAndContext(value, usualTime);
         }
     }
 
