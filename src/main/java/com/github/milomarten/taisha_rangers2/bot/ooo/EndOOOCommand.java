@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
-@Component("end-ooo")
+//@Component("end-ooo")
 public class EndOOOCommand extends CommandSpec<EndOOOCommand.Parameters> {
     private final OutOfOfficeManager manager;
 

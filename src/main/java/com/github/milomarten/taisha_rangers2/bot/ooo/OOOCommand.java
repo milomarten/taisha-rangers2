@@ -1,6 +1,7 @@
 package com.github.milomarten.taisha_rangers2.bot.ooo;
 
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
@@ -11,26 +12,27 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
 
 @Component("ooo")
-public class OOOCommand extends CommandSpec<OOOCommand.Parameters> {
+public class OOOCommand extends LocalizedCommandSpec<OOOCommand.Parameters> {
     private final OutOfOfficeManager manager;
 
     public OOOCommand(OutOfOfficeManager manager) {
-        super("ooo", "Mark yourself as unable to attend session for a certain timeframe");
+        super("ooo");
         this.manager = manager;
         setParameterParser(new PojoParameterParser<>(Parameters::new)
                 .withParameterField(PojoParameterParser.userId(), Parameters::setId)
                 .withParameterField(
                         "start-date",
-                        "The start date of your vacation",
                         StringParameter.REQUIRED
                                 .map(DateUtil::parseCasualDate),
                         Parameters::setStart
                 )
                 .withParameterField(
                         "end-date",
-                        "The end date of your vacation, if different than start",
                         StringParameter.DEFAULT_EMPTY_STRING
                                 .map(DateUtil::parseCasualDate),
                         Parameters::setEnd
@@ -40,18 +42,21 @@ public class OOOCommand extends CommandSpec<OOOCommand.Parameters> {
 
     @Override
     public CommandResponse doAction(Parameters params) {
-        LocalDate start = params.start;
-        LocalDate end = params.end;
+        LocalDate start;
+        LocalDate end;
 
-        if (end == null) {
-            end = params.start;
-        } else if (end.isBefore(start)) {
-            start = params.end;
-            end = params.start;
+        if (params.end == null) {
+            start = end = params.start;
+        } else {
+            var ordered = Stream.of(params.start, params.end).sorted().toList();
+            start = ordered.getFirst();
+            end = ordered.getLast();
         }
 
         if (end.isBefore(LocalDate.now())) {
-            return CommandResponse.reply("Your vacation time is in the past.", true);
+            return localizationFactory.createResponse(
+                    "command.ooo.error.vacation-in-past"
+            ).ephemeral(true);
         }
 
         this.manager.addOutDate(
@@ -60,16 +65,16 @@ public class OOOCommand extends CommandSpec<OOOCommand.Parameters> {
                 end
         );
 
-        String whenVacationIs;
-        if (start.equals(end)) {
-            whenVacationIs = DateUtil.getPrettyDate(start);
-        } else {
-            whenVacationIs = DateUtil.getPrettyDate(start) + " to " + DateUtil.getPrettyDate(end);
-        }
-
-        return CommandResponse.reply(
-                String.format("Scheduled your vacation for %s! Have fun!", whenVacationIs),
-                false);
+        return localizationFactory.createResponse((ms, locale) -> {
+           if (start.equals(end)) {
+                return ms.getMessage("command.ooo.response.one-day",
+                        new Object[]{DateUtil.getPrettyDate(start, locale)}, locale);
+           } else {
+               return ms.getMessage("command.ooo.response.many-days",
+                       new Object[]{DateUtil.getPrettyDate(start, locale), DateUtil.getPrettyDate(end, locale)},
+                       locale);
+           }
+        });
     }
 
     @Data

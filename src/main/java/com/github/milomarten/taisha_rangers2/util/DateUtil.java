@@ -398,11 +398,24 @@ public class DateUtil {
      * Format a date in a nice way.
      * Discord does not natively have a way to do this without resolving to a full timestamp, which is
      * tricky when dealing with timezones. The format is "MMM dd", i.e. "Jul 3".
-     * Future enhancement: localize
      * @param date The date to format.
      * @return The formatted date.
      */
+    @Deprecated
     public static String getPrettyDate(LocalDate date) {
         return date.format(PRETTY);
+    }
+
+    /**
+     * Format a date in a nice way.
+     * Discord does not natively have a way to do this without resolving to a full timestamp, which is
+     * tricky when dealing with timezones. The format is "MMM dd", i.e. "Jul 3".
+     * The months will be localized using the provided locale.
+     * @param date The date to format
+     * @param locale The locale to format into
+     * @return The formatted string
+     */
+    public static String getPrettyDate(LocalDate date, Locale locale) {
+        return date.format(PRETTY.localizedBy(locale));
     }
 }

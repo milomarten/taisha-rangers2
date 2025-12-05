@@ -4,10 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.time.Clock;
-import java.time.DateTimeException;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -175,5 +173,14 @@ class DateUtilTest {
     })
     public void testCasualDuration_BadThings(String expression) {
         assertThrows(IllegalArgumentException.class, () -> DateUtil.parseCasualDuration(expression));
+    }
+
+    @Test
+    public void testPrettyDateWithLocale() {
+        var str = DateUtil.getPrettyDate(
+                LocalDate.of(2025, 12, 5),
+                Locale.FRANCE
+        );
+        assertEquals("déc. 05", str);
     }
 }
