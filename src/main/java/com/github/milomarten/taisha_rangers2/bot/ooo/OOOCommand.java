@@ -1,6 +1,5 @@
 package com.github.milomarten.taisha_rangers2.bot.ooo;
 
-import com.github.milomarten.taisha_rangers2.command.CommandSpec;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
@@ -12,8 +11,6 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
 import java.util.stream.Stream;
 
 @Component("ooo")

@@ -1,6 +1,6 @@
 package com.github.milomarten.taisha_rangers2.bot.ooo;
 
-import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.parameters.OneParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
@@ -13,15 +13,15 @@ import java.time.LocalDate;
 import java.util.stream.Collectors;
 
 @Component("check-ooo")
-public class CheckOOOCommand extends CommandSpec<LocalDate> {
+public class CheckOOOCommand extends LocalizedCommandSpec<LocalDate> {
     private final OutOfOfficeManager manager;
 
     public CheckOOOCommand(OutOfOfficeManager manager) {
-        super("check-ooo", "Check who is out of office one day");
+        super("check-ooo");
         this.manager = manager;
         setParameterParser(new OneParameterParser<>(
                         "date",
-                        "The date to check",
+                        "date",
                         StringParameter.REQUIRED
                                 .map(DateUtil::parseCasualDate)
                 )
@@ -31,17 +31,11 @@ public class CheckOOOCommand extends CommandSpec<LocalDate> {
     @Override
     public CommandResponse doAction(LocalDate params) {
         var who = this.manager.whoIsOutOn(params);
+        var ats = who.stream()
+        .map(FormatUtils::pingUser)
+        .collect(Collectors.joining(" "));
 
-        if (who.isEmpty()) {
-            return CommandResponse.reply("Nobody is out that day!", true);
-        } else {
-            var ats = who.stream()
-                    .map(FormatUtils::pingUser)
-                    .collect(Collectors.joining(", "));
-            return CommandResponse.reply(
-                    String.format("%s are out that day", ats),
-                    true
-            );
-        }
+        return localizationFactory.createResponse("command.check-ooo.response", who.size(), ats)
+                .ephemeral(true);
     }
 }
