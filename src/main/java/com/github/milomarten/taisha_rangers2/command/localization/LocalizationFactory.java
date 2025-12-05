@@ -7,6 +7,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
+import java.util.function.BiFunction;
 
 /**
  * A service which allows for making localizable Discord commands
@@ -39,6 +40,17 @@ public class LocalizationFactory implements Localizer {
         return new LocalizedReplyResponse(key, args, this.messageSource);
     }
 
+    /**
+     * Create a localized response which will be translated into the user's language.
+     * This allows the caller to control how the message is resolved. This can be useful in particular for custom
+     * formatting that the MessageSource does not natively handle, like Java 8 Time objects.
+     * @param resolver A function which takes the MessageSource and Locale, to output a response message
+     * @return A reply which will invoke the resolver to get the message.
+     */
+    public LocalizedDynamicReplyResponse createResponse(BiFunction<MessageSource, Locale, String> resolver) {
+        return new LocalizedDynamicReplyResponse(this.messageSource, resolver);
+    }
+
     @Override
     public LocalizedStrings localize(String key) {
         return createLocalizedString(key);
@@ -65,6 +77,23 @@ public class LocalizationFactory implements Localizer {
         protected String getMessage(ChatInputInteractionEvent event) {
             var locale = event.getInteraction().getUserLocale();
             return messageSource.getMessage(this.key, this.args, DiscordLocales.fromDiscord(locale));
+        }
+    }
+
+    public static class LocalizedDynamicReplyResponse extends ReplyResponse {
+        private final MessageSource messageSource;
+        private final BiFunction<MessageSource, Locale, String> func;
+
+        private LocalizedDynamicReplyResponse(MessageSource messageSource, BiFunction<MessageSource, Locale, String> func) {
+            super("");
+            this.messageSource = messageSource;
+            this.func = func;
+        }
+
+        @Override
+        protected String getMessage(ChatInputInteractionEvent event) {
+            var locale = event.getInteraction().getUserLocale();
+            return func.apply(messageSource, DiscordLocales.fromDiscord(locale));
         }
     }
 }

@@ -20,7 +20,7 @@ public abstract class AbstractSessionCommand<PARAM extends SessionIdentityParame
     }
 
     @Override
-    protected final CommandResponse doAction(PARAM params) {
+    protected CommandResponse doAction(PARAM params) {
         return manager.updateAndReturn(params.getChannelId(), session -> doAction(params, session))
                 .orElseGet(() -> localizationFactory.createResponse("errors.session.no-match").ephemeral(true));
     }

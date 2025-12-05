@@ -1,16 +1,16 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
-import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
-import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
+import com.github.milomarten.taisha_rangers2.state.NextSession;
+import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
-import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -19,31 +19,23 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Component("yes")
-public class YesCommand extends CommandSpec<YesCommand.Parameters> {
-    private final NextSessionManager nextSessionManager;
+public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Parameters> {
+    public YesCommand() {
+        super("yes");
 
-    public YesCommand(NextSessionManager nextSessionManager) {
-        super("yes", "Indicate that you can make it to session");
-        this.nextSessionManager = nextSessionManager;
-
-        this.setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withParameterField(ChatInputInteractionEvent::getUser, Parameters::setUser)
-                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannel)
+        this.setParameterParser(SessionIdentityParameters.parser(Parameters::new)
                 .withParameterField(
                         "after-time",
-                        "Indicate that session must start after this time for you to attend. Default: whenever",
                         StringParameter.DEFAULT_EMPTY_STRING.map(DateUtil::parseCasualTime),
                         Parameters::setStartTime
                 )
                 .withParameterField(
                         "before-time",
-                        "Indicate that session must end before this time for you to attend. Default: whenever",
                         StringParameter.DEFAULT_EMPTY_STRING.map(DateUtil::parseCasualTime),
                         Parameters::setEndTime
                 )
                 .withParameterField(
                         "timezone",
-                        "Indicate the timezone that your time is. Can be a tzid, or ET/CT/MT/PT.",
                         StringParameter.DEFAULT_EMPTY_STRING
                                 .map(DateUtil::parseCasualTimezone),
                         Parameters::setTimezone
@@ -52,15 +44,12 @@ public class YesCommand extends CommandSpec<YesCommand.Parameters> {
     }
 
     @Override
-    public CommandResponse doAction(Parameters params) {
-        return nextSessionManager.playerDoAndReturn(params.channel, params.user.getId(), (session, pr) -> {
-            var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, params.timezone);
-            var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, params.timezone);
-            pr.yes(startTime, endTime);
-            return CommandResponse.reply(getResponseString(params.user, startTime, endTime), false);
-        }).orElseGet(() -> {
-            return CommandResponse.reply("No upcoming session???", true);
-        });
+    protected CommandResponse doPlayerAction(Parameters params, NextSession session, PlayerResponse pr) {
+        var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, params.timezone);
+        var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, params.timezone);
+        pr.yes(startTime, endTime);
+        return getResponseString(params.getUsername(), startTime, endTime)
+                .ephemeral(false);
     }
 
     static ZonedDateTime computeContextualTime(
@@ -84,24 +73,22 @@ public class YesCommand extends CommandSpec<YesCommand.Parameters> {
         }
     }
 
-    private String getResponseString(User user, ZonedDateTime start, ZonedDateTime end) {
-        var username = user.getUsername();
+    private LocalizationFactory.LocalizedReplyResponse getResponseString(String username, ZonedDateTime start, ZonedDateTime end) {
         if (start == null && end == null) {
-            return String.format("%s will be able to attend session!", username);
+            return localizationFactory.createResponse("command.yes.response.whenever.whenever", username);
         } else if (start == null) {
-            return String.format("%s will be able to attend session, so long as it ends by %s!", username, FormatUtils.formatShortTime(end));
+            return localizationFactory.createResponse("command.yes.response.whenever.end", username, FormatUtils.formatShortTime(end));
         } else if (end == null) {
-            return String.format("%s will be able to attend session anytime after %s!", username, FormatUtils.formatShortTime(start));
+            return localizationFactory.createResponse("command.yes.response.start.whenever", username, FormatUtils.formatShortTime(start));
         } else {
-            return String.format("%s will be able to attend session anytime between %s and %s!", username,
+            return localizationFactory.createResponse("command.yes.response.start.end", username,
                     FormatUtils.formatShortTime(start), FormatUtils.formatShortTime(end));
         }
     }
 
     @Data
-    public static class Parameters {
-        Snowflake channel;
-        User user;
+    @EqualsAndHashCode(callSuper = true)
+    public static class Parameters extends SessionIdentityParameters {
         LocalTime startTime;
         LocalTime endTime;
         ZoneId timezone;

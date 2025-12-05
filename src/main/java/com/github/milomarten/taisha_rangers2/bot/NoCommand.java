@@ -1,43 +1,22 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
-import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
-import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
-import discord4j.common.util.Snowflake;
-import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
-import discord4j.core.object.entity.User;
-import lombok.Data;
+import com.github.milomarten.taisha_rangers2.state.NextSession;
+import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
+import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 @Component("no")
-public class NoCommand extends CommandSpec<NoCommand.Parameters> {
-    private final NextSessionManager nextSessionManager;
+public class NoCommand extends AbstractSessionPlayerCommand<SessionIdentityParameters> {
+    public NoCommand() {
+        super("no");
 
-    public NoCommand(NextSessionManager nextSessionManager) {
-        super("no", "Indicate that you won't make it to session");
-        this.nextSessionManager = nextSessionManager;
-
-        this.setParameterParser(new PojoParameterParser<>(Parameters::new)
-                .withParameterField(ChatInputInteractionEvent::getUser, Parameters::setUser)
-                .withParameterField(PojoParameterParser.channelId(), Parameters::setChannelId)
-        );
+        this.setParameterParser(SessionIdentityParameters.parser());
     }
 
     @Override
-    public CommandResponse doAction(Parameters params) {
-        var worked = nextSessionManager.playerDo(params.channelId, params.getUser().getId(),
-                (session, response) -> response.no());
-        if (worked) {
-            return CommandResponse.reply(params.getUser().getUsername() + " will NOT be able to attend session this week.", false);
-        } else {
-            return CommandResponse.reply("No upcoming session???", true);
-        }
-    }
-
-    @Data
-    public static class Parameters {
-        Snowflake channelId;
-        User user;
+    protected CommandResponse doPlayerAction(SessionIdentityParameters params, NextSession session, PlayerResponse pr) {
+        pr.no();
+        return localizationFactory.createResponse("command.no.response", params.getUsername());
     }
 }

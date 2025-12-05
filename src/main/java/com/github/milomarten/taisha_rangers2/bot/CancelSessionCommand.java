@@ -1,7 +1,7 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
-import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import org.springframework.stereotype.Component;
@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component("cancel")
-public class CancelSessionCommand extends CommandSpec<SessionIdentityParameters> {
+public class CancelSessionCommand extends LocalizedCommandSpec<SessionIdentityParameters> {
     private final NextSessionManager manager;
 
     public CancelSessionCommand(NextSessionManager manager) {
-        super("cancel", "Cancel the upcoming session");
+        super("cancel");
         this.manager = manager;
 
         setParameterParser(SessionIdentityParameters.parser());
@@ -24,9 +24,11 @@ public class CancelSessionCommand extends CommandSpec<SessionIdentityParameters>
     public CommandResponse doAction(SessionIdentityParameters params) {
         var worked = manager.cancelSession(params);
         if (worked) {
-            return CommandResponse.reply("Session was canceled. Maybe next time!", false);
+            return localizationFactory.createResponse("command.cancel.response")
+                    .ephemeral(false);
         } else {
-            return CommandResponse.reply("No session???", true);
+            return localizationFactory.createResponse("errors.session.no-match")
+                    .ephemeral(true);
         }
     }
 }
