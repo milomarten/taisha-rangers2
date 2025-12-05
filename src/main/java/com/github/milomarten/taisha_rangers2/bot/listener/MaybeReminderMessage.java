@@ -12,14 +12,14 @@ import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
-//@ConditionalOnBean(GatewayDiscordClient.class)
+@ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMessage.PlayerId> implements NextSessionListener {
     private final GatewayDiscordClient client;
     @Setter private NextSessionManager nextSessionManager;

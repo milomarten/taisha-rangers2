@@ -102,6 +102,18 @@ public class NextSessionManager {
         }
     }
 
+    public boolean cancelSessionUnprotected(Snowflake channelId) {
+        var session = this.nextSessions.get(channelId);
+        if (session == null) {
+            return false;
+        } else {
+            this.nextSessions.remove(channelId);
+            this.listeners.forEach(c -> c.onDelete(channelId));
+            persist();
+            return true;
+        }
+    }
+
     public boolean playerDo(Snowflake channel, Snowflake player, BiConsumer<NextSession, PlayerResponse> action) {
         return playerDoAndReturn(channel, player, (ns, pr) -> {
             action.accept(ns, pr);

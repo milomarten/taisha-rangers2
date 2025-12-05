@@ -7,6 +7,7 @@ spring:
 #    base-path: 'M:\Code\taisha-rangers2'
 
 reminder:
+  enabled: false
   far-off-session-threshold: -7d # for sessions far in the future, only send the message at this offset from the proposed start time
   submit-status-reminder-offset: -48h # ping all players who have not submitted if they can attend session at this offset from the proposed start time
   latest-submit-status-offset: -24h # don't allow players to /when to a time after this offset from the proposed start time

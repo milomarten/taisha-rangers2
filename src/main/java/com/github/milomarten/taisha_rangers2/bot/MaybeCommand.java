@@ -26,7 +26,6 @@ public class MaybeCommand extends AbstractSessionPlayerCommand<MaybeCommand.Para
         setParameterParser(SessionIdentityParameters.parser(Parameters::new)
                 .withParameterField(
                         "duration",
-                        "I'll send a message to you in this duration to remind you",
                         StringParameter.REQUIRED,
                         (p, s) -> p.setTimeFromNow(DateUtil.parseCasualDuration(s))
                 )

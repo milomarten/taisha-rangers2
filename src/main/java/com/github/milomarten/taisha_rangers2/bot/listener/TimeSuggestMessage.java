@@ -13,7 +13,7 @@ import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -25,7 +25,7 @@ import java.util.Objects;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-//@ConditionalOnBean(GatewayDiscordClient.class)
+@ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class TimeSuggestMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
     private final TimingHelper timingHelper;

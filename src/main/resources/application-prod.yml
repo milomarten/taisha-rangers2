@@ -1,3 +1,6 @@
 persistence:
   session-manager:
     base-path: '/taisha-rangers2-files'
+
+reminder:
+  enabled: true
