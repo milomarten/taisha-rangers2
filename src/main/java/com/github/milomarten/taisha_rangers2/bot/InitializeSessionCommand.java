@@ -114,7 +114,9 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
 
     private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
         var whoOut = new ArrayList<>(oooManager.whoIsOutOn(when.toLocalDate()));
-        whoOut.retainAll(party.getPlayers());
+        var relevant = new HashSet<>(Set.of(party.getDm()));
+        relevant.addAll(party.getPlayers());
+        whoOut.retainAll(relevant);
         return whoOut;
     }
 

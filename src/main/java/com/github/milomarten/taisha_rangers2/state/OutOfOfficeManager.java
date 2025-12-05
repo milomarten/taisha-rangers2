@@ -54,7 +54,8 @@ public class OutOfOfficeManager {
                     if (map != null) {
                         outOfOffices.putAll(map);
                     }
-                });
+                })
+                .subscribe();
     }
 
     private void persist() {
