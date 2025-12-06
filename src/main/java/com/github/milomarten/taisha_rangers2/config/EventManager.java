@@ -1,14 +1,12 @@
 package com.github.milomarten.taisha_rangers2.config;
 
-import com.github.milomarten.taisha_rangers2.command.CommandHandler;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
-import discord4j.common.util.Snowflake;
-import discord4j.core.DiscordClient;
+import com.github.milomarten.taisha_rangers2.command.autocomplete.AutocompleteSupport;
 import discord4j.core.GatewayDiscordClient;
-import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
+import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.reaction.ReactionEmoji;
+import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +24,7 @@ public class EventManager {
     private final GatewayDiscordClient gateway;
 
     private final Map<String, CommandSpec<?>> commandHandlers;
+    private final Map<String, AutocompleteSupport> autocompleteHandlers;
 
     @PostConstruct
     public void init() {
@@ -42,6 +41,24 @@ public class EventManager {
                     return Mono.empty();
                 }
             }).subscribe();
+        }
+
+        if (!autocompleteHandlers.isEmpty()) {
+            gateway.on(ChatInputAutoCompleteEvent.class, interaction -> {
+                var autocorrectHandler = autocompleteHandlers.get(interaction.getCommandName());
+                if (autocorrectHandler != null) {
+                    var possibilities = autocorrectHandler.getSuggestions(
+                            interaction.getFocusedOption().getName(),
+                            interaction.getFocusedOption().getValue()
+                                    .map(ApplicationCommandInteractionOptionValue::asString)
+                                    .orElse("")
+                    );
+
+                    return interaction.respondWithSuggestions(possibilities);
+                } else {
+                    return Mono.empty();
+                }
+            });
         }
 
         gateway.on(MessageCreateEvent.class, mce -> {

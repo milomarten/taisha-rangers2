@@ -9,13 +9,23 @@ import java.util.List;
 
 /**
  * A ParameterParser for a command with one parameter
- * @param name The name of the parameter
- * @param description The description of the parameter
- * @param metadata The ParameterInfo, which describes the type and any validations
  * @param <PARAM> The type of the parameter
  */
-public record OneParameterParser<PARAM>(String name, String description,
-                                        ParameterInfo<PARAM> metadata) implements ParameterParser<PARAM> {
+public class OneParameterParser<PARAM> implements ParameterParser<PARAM> {
+    private final String name;
+    private final String description;
+    private final ParameterInfo<PARAM> metadata;
+
+    /**
+     * @param name The name of the parameter
+     * @param description The description of the parameter
+     * @param metadata The ParameterInfo, which describes the type and any validations
+     */
+    public OneParameterParser(String name, String description, ParameterInfo<PARAM> metadata) {
+        this.name = name;
+        this.description = description;
+        this.metadata = metadata;
+    }
 
     @Override
     public PARAM parse(ChatInputInteractionEvent event) {

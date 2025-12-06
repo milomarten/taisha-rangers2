@@ -44,6 +44,13 @@ public class StringParameter implements ParameterInfo<String> {
      */
     private Integer maxLength;
 
+    /**
+     * Mark this parameter as supporting autocomplete.
+     * Setting this isn't enough. Your CommandSpec must also implement AutocompleteSupport
+     * to forward in the proper manner.
+     */
+    private boolean autocomplete;
+
     @Override
     public String convert(ChatInputInteractionEvent event, String field) {
         return event.getOptionAsString(field)
@@ -57,6 +64,7 @@ public class StringParameter implements ParameterInfo<String> {
                 .type(ApplicationCommandOption.Type.STRING.getValue())
                 .required(defaultValue == null)
                 .minLength(Possible.ofNullable(minLength))
+                .autocomplete(autocomplete)
                 .maxLength(Possible.ofNullable(maxLength));
     }
 }

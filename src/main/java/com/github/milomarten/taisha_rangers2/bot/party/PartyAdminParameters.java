@@ -1,12 +1,15 @@
 package com.github.milomarten.taisha_rangers2.bot.party;
 
+import com.github.milomarten.taisha_rangers2.command.autocomplete.AutocompleteSupport;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import discord4j.common.util.Snowflake;
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @Data
