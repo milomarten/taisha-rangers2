@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.localization;
 
 import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import java.util.function.BiFunction;
 @RequiredArgsConstructor
 @Service
 public class LocalizationFactory implements Localizer {
-    private final MessageSource messageSource;
+    @Getter private final MessageSource messageSource;
 
     /**
      * Create a localizedString using the backing messageSource

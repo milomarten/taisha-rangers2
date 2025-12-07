@@ -17,7 +17,7 @@ import java.util.function.Function;
  * Discord will enforce that only those Integers are supported; however, if an invalid Integer
  * is somehow provided, the defaultValue will be returned, as a safeguard.
  * A namer parameter is provided, which is used to convert the enum into a String to display in the list of options
- * to the user. By default, it will use the name() function attached to the num.
+ * to the user. By default, it will use the name() function attached to the enum.
  * @param <E> The enum type.
  */
 public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {

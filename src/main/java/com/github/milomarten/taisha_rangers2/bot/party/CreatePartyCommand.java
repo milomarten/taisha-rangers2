@@ -1,10 +1,8 @@
 package com.github.milomarten.taisha_rangers2.bot.party;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
-import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.SnowflakeParameter;
-import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
-import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.PartyManager;
 import discord4j.common.util.Snowflake;
@@ -15,16 +13,15 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component("create-party")
-public class CreatePartyCommand extends CommandSpec<CreatePartyCommand.Parameters> {
+public class CreatePartyCommand extends LocalizedCommandSpec<CreatePartyCommand.Parameters> {
     private final PartyManager partyManager;
 
     public CreatePartyCommand(PartyManager partyManager) {
-        super("create-party", "Create a party");
+        super("create-party");
         this.partyManager = partyManager;
-        setParameterParser(PartyAdminParameters.parser(Parameters::new)
+        setParameterParser(PartyIdentityParameters.parser(Parameters::new)
                 .withParameterField(
                         "ping",
-                        "A role that encompasses all the players in this party",
                         SnowflakeParameter.builder()
                                 .type(SnowflakeParameter.SnowflakeType.ROLE)
                                 .defaultValue(null)
@@ -45,21 +42,19 @@ public class CreatePartyCommand extends CommandSpec<CreatePartyCommand.Parameter
         );
 
         if (worked) {
-            return CommandResponse.reply(
-                    String.format("Created party `%s`!", params.getPartyName()),
-                    false
-            );
+            return localizationFactory.createResponse(
+                    "command.create-party.response", params.getPartyName()
+            ).ephemeral(false);
         } else {
-            return CommandResponse.reply(
-                    String.format("Could not create party `%s`, one already exists with that name.", params.getPartyName()),
-                    true
-            );
+            return localizationFactory.createResponse(
+                    "command.create-party.error.party-exists", params.getPartyName()
+            ).ephemeral(true);
         }
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    public static class Parameters extends PartyAdminParameters {
+    public static class Parameters extends PartyIdentityParameters {
         private Snowflake ping;
     }
 }
