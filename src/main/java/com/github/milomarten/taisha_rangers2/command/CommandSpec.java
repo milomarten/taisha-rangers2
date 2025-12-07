@@ -6,6 +6,7 @@ import com.github.milomarten.taisha_rangers2.command.parameters.ParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import discord4j.discordjson.json.ImmutableApplicationCommandRequest;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -18,26 +19,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public abstract class CommandSpec<PARAM> implements CommandHandler {
-    private final String name;
-    private final String description;
-    @Setter ParameterParser<PARAM> parameterParser = NoParameterParser.create();
+    @Setter @Getter ParameterParser<PARAM> parameterParser = NoParameterParser.create();
     @Setter Set<CommandPermission> permissions = Set.of();
-    @Setter Localizer localizer = Localizer.IDENTITY;
 
     public ApplicationCommandRequest toDiscordSpec() {
-        var localName = localizer.localize(name, "name");
-        var localDescription = localizer.localize(description, "description");
-        return ApplicationCommandRequest.builder()
-                .name(localName.key())
-                .nameLocalizationsOrNull(localName.getDiscordifiedTranslations())
-                .description(localDescription.key())
-                .descriptionLocalizationsOrNull(localDescription.getDiscordifiedTranslations())
-                .addAllOptions(parameterParser.toDiscordSpec(
-                        localizer.withPrefix(name).withPrefix("parameter")
-                ))
+        return decorate(ApplicationCommandRequest.builder()
                 .defaultMemberPermissions(computeMemberPermissions())
-                .build();
+        ).build();
     }
+
+    protected abstract ImmutableApplicationCommandRequest.Builder decorate(ImmutableApplicationCommandRequest.Builder builder);
 
     @Override
     public Mono<?> run(ChatInputInteractionEvent event) {
