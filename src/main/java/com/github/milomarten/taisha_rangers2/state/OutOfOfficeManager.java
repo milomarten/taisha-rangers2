@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -139,74 +140,6 @@ public class OutOfOfficeManager {
         return new OutOfOffice(additional.getPlayer(), timesList.getFirst(), timesList.getLast());
     }
 
-    List<OutOfOffice> splitOutOOO(OutOfOffice original, OutOfOffice split) {
-        // 12/5-12/8 - 12/5-12/8 = []
-        // 12/5-12/8 - 12/2-12/8 = []
-        // 12/5-12/8 - 12/5-12/10 = []
-        // 12/5-12/8 - 12/2-12/10 = []
-        if (split.getStart().compareTo(original.getStart()) <= 0 && split.getEnd().compareTo(original.getEnd()) >= 0) {
-            // special handling if the split completely encapsulates the original. The whole thing goes.
-            return List.of();
-        }
-        // 12/5-12/8 - 12/6-12/7 = [12/5, 12/8]
-        else if (split.getStart().isAfter(original.getStart()) &&
-                split.getEnd().isBefore(original.getEnd())
-        ) {
-            // special handling if the split is completely within the original, becomes 2 periods.
-            return List.of(
-                    new OutOfOffice(original.getPlayer(), original.getStart(), split.getStart().minusDays(1)),
-                    new OutOfOffice(original.getPlayer(), split.getEnd().plusDays(1), original.getEnd())
-            );
-        }
-        // 12/5-12/8 - 12/7-12/10 == 12/5-12/6
-        // 12/5-12/8 - 12/7-12/8 == 12/5-12/6
-        else if (split.getStart().isAfter(original.getStart())) {
-            return List.of(
-                    new OutOfOffice(original.getPlayer(), original.getStart(), split.getStart().minusDays(1))
-            );
-        }
-        // 12/5-12/8 - 12/1-12/6 == 12/7-12/8
-        // 12/5-12/8 - 12/5-12/6 == 12/7-12/8
-        else if (split.getEnd().isBefore(original.getEnd())) {
-            return List.of(
-                    new OutOfOffice(original.getPlayer(), split.getEnd().plusDays(1), original.getEnd())
-            );
-        } else {
-            //Times do not coincide.
-            return List.of(original);
-        }
-    }
-
-    /**
-     * Remove one of your out dates
-     * @param who The person to edit
-     * @param date A date in the vacation block they want to delete
-     * @return True, if at least one date was removed.
-     */
-    public boolean removeOutDate(Snowflake who, LocalDate date) {
-        if (outOfOffices.containsKey(who)) {
-            // one day, this should be a bit more complex.
-            var resolved = outOfOffices.get(who)
-                    .stream()
-                    .filter(ooo -> !testInDate(date, ooo.getStart(), ooo.getEnd()))
-                    .toList();
-            outOfOffices.put(who, resolved);
-            persist();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Get the dates you are out of office for
-     * @param who The person to view
-     * @return A list of their upcoming out of office dates
-     */
-    public List<OutOfOffice> getOutDatesFor(Snowflake who) {
-        return outOfOffices.getOrDefault(who, Collections.emptyList());
-    }
-
     /**
      * Clean up the out of office list
      * Remove anything on the OOO list that ended in the past
@@ -236,7 +169,27 @@ public class OutOfOfficeManager {
                 .toList();
     }
 
-    private static <T> List<T> of(T... items) {
-        return new ArrayList<>(List.of(items));
+    /**
+     * Get any OOOs that are between now and within the provided scope.
+     * Any OOOs that are have an end date including or after today's date, or a start date before or including
+     * the now + scope, are included.
+     * @param people The relevant people to see
+     * @param scope The number of days in the future to search
+     * @return The OOOs that are within the upcoming period
+     */
+    public List<OutOfOffice> getUpcoming(Set<Snowflake> people, Period scope) {
+        var now = LocalDate.now();
+        var future = now.plus(scope);
+        return outOfOffices.entrySet()
+                .stream()
+                .filter(entry -> people.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .flatMap(Collection::stream)
+                .filter(ooo -> {
+                    var isEndDateAfterNow = ooo.getEnd().compareTo(now) >= 0;
+                    var isStartDateBeforeFuture = ooo.getStart().compareTo(future) <= 0;
+                    return isEndDateAfterNow || isStartDateBeforeFuture;
+                })
+                .toList();
     }
 }
