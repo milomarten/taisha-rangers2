@@ -188,7 +188,7 @@ public class OutOfOfficeManager {
                 .filter(ooo -> {
                     var isEndDateAfterNow = ooo.getEnd().compareTo(now) >= 0;
                     var isStartDateBeforeFuture = ooo.getStart().compareTo(future) <= 0;
-                    return isEndDateAfterNow || isStartDateBeforeFuture;
+                    return isEndDateAfterNow && isStartDateBeforeFuture;
                 })
                 .toList();
     }
