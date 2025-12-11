@@ -45,6 +45,7 @@ public abstract class LocalizedCommandSpec<PARAM> extends CommandSpec<PARAM> {
                     .then();
         } else {
             return localizationFactory.createResponse("errors.generic", ex.getClass().getSimpleName(), ex.getMessage())
+                    .ephemeral(true)
                     .respond(event)
                     .then();
         }

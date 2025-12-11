@@ -8,15 +8,14 @@ import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 
 @Component("yes")
 public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Parameters> {
@@ -45,6 +44,11 @@ public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Paramete
 
     @Override
     protected CommandResponse doPlayerAction(Parameters params, NextSession session, PlayerResponse pr) {
+        if ((params.startTime != null || params.endTime != null) && params.timezone == null) {
+            return localizationFactory.createResponse("command.yes.error.no-timezone")
+                    .ephemeral(true);
+        }
+
         var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, params.timezone);
         var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, params.timezone);
         pr.yes(startTime, endTime);
