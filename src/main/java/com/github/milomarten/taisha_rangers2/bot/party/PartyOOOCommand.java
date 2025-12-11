@@ -12,6 +12,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.time.Period;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -44,9 +45,12 @@ public class PartyOOOCommand extends LocalizedCommandSpec<PartyOOOCommand.Parame
             return localizationFactory.createResponse("errors.party.no-players", params.getPartyName());
         }
 
-        var ooos = oooManager.getUpcoming(party.getPlayers(), Period.ofWeeks(params.period));
+        var toCheck = new HashSet<>(party.getPlayers());
+        toCheck.add(party.getDm());
+        var ooos = oooManager.getUpcoming(toCheck, Period.ofWeeks(params.period));
         if (ooos.isEmpty()) {
-            return localizationFactory.createResponse("command.party-ooo.response.none", params.period);
+            return localizationFactory.createResponse("command.party-ooo.response.none", params.period)
+                    .ephemeral(true);
         } else {
             return localizationFactory.createResponse((source, locale) -> {
                var prefix = source.getMessage("command.party-ooo.response.some", new Object[]{params.period}, locale);
@@ -62,7 +66,8 @@ public class PartyOOOCommand extends LocalizedCommandSpec<PartyOOOCommand.Parame
                            return item + "(" + period + ")";
                        })
                        .collect(Collectors.joining("\n", prefix + "\n", ""));
-            });
+            })
+                    .ephemeral(true);
         }
     }
 
