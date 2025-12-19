@@ -1,27 +1,24 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
+import com.github.milomarten.taisha_rangers2.config.LocalizedDiscordService;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
-import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 @ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMessage.PlayerId> implements NextSessionListener {
-    private final GatewayDiscordClient client;
+    private final LocalizedDiscordService client;
     @Setter private NextSessionManager nextSessionManager;
 
     @Override
@@ -70,22 +67,14 @@ public class MaybeReminderMessage extends BaseSessionScheduler<MaybeReminderMess
     private void pingPlayerIfNecessary(NextSession session, Snowflake playerId) {
         var playerResponse = session.getPlayerResponses().get(playerId);
         if (playerResponse != null && playerResponse.getState() == PlayerResponse.State.MAYBE) {
-            client.getChannelById(session.getChannel())
-                    .cast(TextChannel.class)
-                    .flatMap(tc -> {
-                        var text = String.format("Hey %s! Just reminding you to register `/yes` or `/no` for session. It's scheduled for %s!",
-                                FormatUtils.pingUser(playerId),
-                                FormatUtils.formatShortDateTime(session.getProposedStartTime()));
-                        return tc.createMessage(text)
-                                .withAllowedMentions(AllowedMentions.builder()
-                                        .allowUser(playerId)
-                                        .build());
-                    })
-                    .onErrorResume(ex -> {
-                        log.error("Unable to send maybe ping", ex);
-                        return Mono.empty();
-                    })
-                    .subscribe();
+            client.sendLocalizedMessage(
+                    session.getChannel(),
+                    session.getLocale(),
+                    LocalizedDiscordService.withAllowedUserMention(playerId),
+                    "job.maybe-reminder",
+                    FormatUtils.pingUser(playerId),
+                    FormatUtils.formatShortDateTime(session.getProposedStartTime())
+            ).subscribe();
         }
     }
 

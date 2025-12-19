@@ -1,11 +1,10 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
+import com.github.milomarten.taisha_rangers2.config.LocalizedDiscordService;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
-import discord4j.core.object.entity.channel.TextChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class AutoCancel extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
-    private final GatewayDiscordClient gatewayDiscordClient;
+    private final LocalizedDiscordService discord;
     @Setter private NextSessionManager nextSessionManager;
 
     @Override
@@ -53,9 +52,8 @@ public class AutoCancel extends BaseSessionScheduler<Snowflake> implements NextS
         if (session.getStartTime() == null) {
             log.info("Auto-canceling session {}, since no start time was ever provided.", session.getChannel());
             nextSessionManager.cancelSessionUnprotected(session.getChannel());
-            gatewayDiscordClient.getChannelById(session.getChannel())
-                    .cast(TextChannel.class)
-                    .flatMap(tc -> tc.createMessage("Auto-cancelled session, since no start time was provided."))
+
+            discord.sendLocalizedMessage(session.getChannel(), session.getLocale(), "job.auto-cancel")
                     .subscribe();
         }
     }

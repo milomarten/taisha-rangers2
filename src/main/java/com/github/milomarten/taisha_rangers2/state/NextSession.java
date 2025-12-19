@@ -24,6 +24,7 @@ public class NextSession {
     public Snowflake getPing() { return party.getPing(); }
     public Snowflake getGm() { return party.getDm(); }
     public int getNumberOfPlayers() { return party.getPlayers().size(); }
+    public Locale getLocale() { return Objects.requireNonNullElse(party.getLocale(), Locale.US); }
 
     @JsonIgnore
     public int getNumberOfPlayersResponded() {

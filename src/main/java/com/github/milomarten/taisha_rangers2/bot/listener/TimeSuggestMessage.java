@@ -1,6 +1,5 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
-import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
@@ -28,7 +27,6 @@ import java.util.Objects;
 @ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class TimeSuggestMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final GatewayDiscordClient client;
-    private final TimingHelper timingHelper;
     @Setter
     private NextSessionManager nextSessionManager;
 

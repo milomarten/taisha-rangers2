@@ -1,29 +1,28 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
-import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
+import com.github.milomarten.taisha_rangers2.config.LocalizedDiscordService;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
-import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.MessageCreateMono;
 import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
+
+import java.util.function.UnaryOperator;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 @ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class ItsTimeMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
-    private final GatewayDiscordClient client;
+    private final LocalizedDiscordService client;
     @Setter private NextSessionManager nextSessionManager;
-    private final TimingHelper timingHelper;
 
     @Override
     public void onLoad(NextSession nextSession) {
@@ -52,25 +51,24 @@ public class ItsTimeMessage extends BaseSessionScheduler<Snowflake> implements N
     }
 
     private void pingToBegin(NextSession session) {
-        var message = String.format(
-                "%s %s! Session starts %s!",
+        client.sendLocalizedMessage(
+                session.getChannel(),
+                session.getLocale(),
+                configureSafePings(session),
+                "job.its-time",
                 FormatUtils.pingUser(session.getGm()),
-                FormatUtils.pingRole(session.getPing()),
+                session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing()),
                 FormatUtils.formatRelativeTime(session.getStartTime())
-        );
+        ).subscribe();
+    }
 
-        client.getChannelById(session.getChannel())
-                .cast(TextChannel.class)
-                .flatMap(tc ->
-                        tc.createMessage(message)
-                                .withAllowedMentions(AllowedMentions.builder()
-                                        .allowRole(session.getPing())
-                                        .allowUser(session.getGm())
-                                .build()))
-                .onErrorResume(ex -> {
-                    log.error("Unable to announce session", ex);
-                    return Mono.empty();
-                })
-                .subscribe();
+    private UnaryOperator<MessageCreateMono> configureSafePings(NextSession session) {
+        return msg -> {
+            var allowed = AllowedMentions.builder().allowUser(session.getGm());
+            if (session.getPing() != null) {
+                allowed = allowed.allowRole(session.getPing());
+            }
+            return msg.withAllowedMentions(allowed.build());
+        };
     }
 }

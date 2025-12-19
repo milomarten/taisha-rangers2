@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
+import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.util.function.Predicate;
 @Slf4j
 public abstract class BaseSessionScheduler<KEY> {
     @Setter @Autowired private TaskScheduler taskScheduler;
+    @Setter @Autowired protected TimingHelper timingHelper;
     private final Map<KEY, Context> sessions = new ConcurrentHashMap<>();
 
     protected void schedule(KEY flake, Runnable task, Instant when) {

@@ -1,31 +1,28 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
-import com.github.milomarten.taisha_rangers2.bot.TimingHelper;
+import com.github.milomarten.taisha_rangers2.config.LocalizedDiscordService;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
-import discord4j.core.object.entity.channel.TextChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.time.ZonedDateTime;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
-    private final GatewayDiscordClient client;
+    private final LocalizedDiscordService client;
     @Setter private NextSessionManager nextSessionManager;
-    private final TimingHelper timingHelper;
 
     @Override
     public void onLoad(NextSession nextSession) {
@@ -62,20 +59,20 @@ public class GentleReminderMessage extends BaseSessionScheduler<Snowflake> imple
     private void doPlayerPingIfNecessary(NextSession session) {
         var noResponsePlayers = session.getHydratedPlayerResponses()
                 .filter(pr -> pr.getState() == PlayerResponse.State.NO_RESPONSE)
-                .map(pr -> FormatUtils.pingUser(pr.getPlayer()))
+                .map(PlayerResponse::getPlayer)
                 .toList();
         if (!noResponsePlayers.isEmpty()) {
-            var ping = String.join(", ", noResponsePlayers);
-            var message = String.format("Hey %s! Don't forget to send `/yes` or `/no` if you can attend session on %s! Thank you!",
-                    ping, FormatUtils.formatShortDateTime(session.getProposedStartTime()));
-            this.client.getChannelById(session.getChannel())
-                    .cast(TextChannel.class)
-                    .flatMap(tc -> tc.createMessage(message))
-                    .onErrorResume(ex -> {
-                        log.error("Unable to send reminder ping", ex);
-                        return Mono.empty();
-                    })
-                    .subscribe();
+            var rawPing = noResponsePlayers.stream()
+                    .map(FormatUtils::pingUser)
+                    .collect(Collectors.joining(", "));
+            client.sendLocalizedMessage(
+                    session.getChannel(),
+                    session.getLocale(),
+                    LocalizedDiscordService.withAllowedUserMention(noResponsePlayers),
+                    "job.gentle-reminder",
+                    rawPing,
+                    FormatUtils.formatShortDateTime(session.getProposedStartTime())
+            ).subscribe();
         }
     }
 }
