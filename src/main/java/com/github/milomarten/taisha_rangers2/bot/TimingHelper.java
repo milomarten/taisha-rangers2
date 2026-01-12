@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 
 @Component
@@ -47,5 +48,14 @@ public class TimingHelper {
 
     public ZonedDateTime getDoneReminderTime(NextSession session) {
         return session.getStartTime().plus(doneReminderOffset);
+    }
+
+    public ZonedDateTime getDayOfPingTime(NextSession session) {
+        var pingTime = session.getStartTime().with(LocalTime.of(10, 0));
+        if (pingTime.isAfter(session.getStartTime())) {
+            return pingTime.minusDays(1);
+        } else {
+            return pingTime;
+        }
     }
 }
