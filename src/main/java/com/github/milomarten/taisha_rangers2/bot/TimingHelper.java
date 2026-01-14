@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Component
 @ConfigurationProperties("reminder")
@@ -51,7 +53,15 @@ public class TimingHelper {
     }
 
     public ZonedDateTime getDayOfPingTime(NextSession session) {
-        var pingTime = session.getStartTime().with(LocalTime.of(10, 0));
+        ZoneId timezone;
+        if (session.getParty().getUsualTime() != null) {
+            timezone = session.getParty().getUsualTime().getTimezone();
+        } else {
+            timezone = ZoneId.of("America/New_York");
+        }
+        var pingTime = session.getStartTime()
+                .withZoneSameInstant(timezone)
+                .with(LocalTime.of(10, 0));
         if (pingTime.isAfter(session.getStartTime())) {
             return pingTime.minusDays(1);
         } else {
