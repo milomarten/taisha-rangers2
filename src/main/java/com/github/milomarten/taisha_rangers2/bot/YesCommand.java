@@ -4,6 +4,7 @@ import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFa
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
+import com.github.milomarten.taisha_rangers2.state.PlayerManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
@@ -19,8 +20,11 @@ import java.time.*;
 
 @Component("yes")
 public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Parameters> {
-    public YesCommand() {
+    private final PlayerManager playerManager;
+
+    public YesCommand(PlayerManager playerManager) {
         super("yes");
+        this.playerManager = playerManager;
 
         this.setParameterParser(SessionIdentityParameters.parser(Parameters::new)
                 .withParameterField(
@@ -44,13 +48,18 @@ public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Paramete
 
     @Override
     protected CommandResponse doPlayerAction(Parameters params, NextSession session, PlayerResponse pr) {
-        if ((params.startTime != null || params.endTime != null) && params.timezone == null) {
-            return localizationFactory.createResponse("command.yes.error.no-timezone")
-                    .ephemeral(true);
+        var playerTimezone = params.timezone;
+        if ((params.startTime != null || params.endTime != null) && playerTimezone == null) {
+            playerTimezone = playerManager.getUsualPlayerTimezone(pr.getPlayer())
+                    .orElse(null);
+            if (playerTimezone == null) {
+                return localizationFactory.createResponse("command.yes.error.no-timezone")
+                        .ephemeral(true);
+            }
         }
 
-        var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, params.timezone);
-        var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, params.timezone);
+        var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, playerTimezone);
+        var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, playerTimezone);
         pr.yes(startTime, endTime);
         return getResponseString(params.getUsername(), startTime, endTime)
                 .ephemeral(false);
