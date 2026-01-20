@@ -1,74 +1,27 @@
 package com.github.milomarten.taisha_rangers2.state;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
-import com.github.milomarten.taisha_rangers2.persistence.NoOpPersister;
-import com.github.milomarten.taisha_rangers2.persistence.Persister;
 import discord4j.common.util.Snowflake;
-import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class OutOfOfficeManager {
-    private static final String KEY = "ooo";
-    private static final TypeReference<List<OutOfOffice>> TYPE =
-            new TypeReference<>() {};
-    private static final TypeReference<Map<Snowflake, List<OutOfOffice>>> TYPE_2 =
-            new TypeReference<>() {};
-
-    private final Map<Snowflake, List<OutOfOffice>> outOfOffices
-            = Collections.synchronizedMap(new HashMap<>());
-    private final Persister persister;
-
-    @Autowired
-    public OutOfOfficeManager(
-            @Value("${persistence.session-manager.base-path:}") String path,
-            ObjectMapper om) {
-        this.persister = StringUtils.isEmpty(path) ?
-                new NoOpPersister() :
-                new JsonFilePersister(path, om);
-    }
-
-    @PostConstruct
-    public void init() {
-        this.persister.load(KEY, TYPE_2)
-                .onErrorResume(ex -> {
-                    return this.persister.load(KEY, TYPE)
-                            .map(l -> l.stream()
-                                    .collect(Collectors.groupingBy(OutOfOffice::getPlayer)));
-                })
-                .doOnSuccess(map -> {
-                    if (map != null) {
-                        outOfOffices.putAll(map);
-                    }
-                })
-                .subscribe();
-    }
+    private final PlayerManager playerManager;
 
     private void persist() {
-        this.persister.persist(KEY, this.outOfOffices)
-                .onErrorResume(ex -> {
-                    log.error("Error persisting OOOs", ex);
-                    return Mono.empty();
-                })
-                .subscribe();
+        playerManager.persist();
     }
 
-    private boolean testInDate(LocalDate test, LocalDate left, LocalDate right) {
+    private static boolean testInDate(LocalDate test, LocalDate left, LocalDate right) {
         return !test.isBefore(left) && !test.isAfter(right);
     }
 
@@ -83,7 +36,9 @@ public class OutOfOfficeManager {
             throw new IllegalArgumentException("end is before start");
         }
 
-        var list = outOfOffices.computeIfAbsent(who, k -> new ArrayList<>());
+        var player = playerManager.getPlayerOrCreate(who);
+        var list = Objects.<List<OutOfOffice>>
+                requireNonNullElseGet(player.getOutOfOffices(), ArrayList::new);
         var ooo = new OutOfOffice(who, start, end);
         var intersecting = getIntersectingOOOs(list, start, end);
         var sequential = getSequentialOOOs(list, start, end);
@@ -96,10 +51,11 @@ public class OutOfOfficeManager {
             list.add(resolved);
         }
 
+        player.setOutOfOffices(list);
         persist();
     }
 
-    private List<OutOfOffice> getIntersectingOOOs(List<OutOfOffice> ooos, LocalDate start, LocalDate end) {
+    private static List<OutOfOffice> getIntersectingOOOs(List<OutOfOffice> ooos, LocalDate start, LocalDate end) {
         if (ooos != null) {
             return ooos.stream()
                     .filter(ooo -> {
@@ -112,7 +68,7 @@ public class OutOfOfficeManager {
         }
     }
 
-    private List<OutOfOffice> getSequentialOOOs(List<OutOfOffice> ooos, LocalDate start, LocalDate end) {
+    private static List<OutOfOffice> getSequentialOOOs(List<OutOfOffice> ooos, LocalDate start, LocalDate end) {
         if (ooos != null) {
             return ooos.stream()
                     .filter(ooo -> {
@@ -125,11 +81,11 @@ public class OutOfOfficeManager {
         }
     }
 
-    private boolean areDatesInSequence(LocalDate one, LocalDate two) {
+    private static boolean areDatesInSequence(LocalDate one, LocalDate two) {
         return Objects.equals(one.plusDays(1), two);
     }
 
-    OutOfOffice spliceInNewOOO(List<OutOfOffice> collisions, List<OutOfOffice> sequences, OutOfOffice additional) {
+    static OutOfOffice spliceInNewOOO(List<OutOfOffice> collisions, List<OutOfOffice> sequences, OutOfOffice additional) {
         var timesList = Stream.concat(collisions.stream(), sequences.stream())
                 .<LocalDate>mapMulti((ooo, eater) -> {
                     eater.accept(ooo.getStart());
@@ -146,9 +102,8 @@ public class OutOfOfficeManager {
      */
     @Scheduled(cron = "0 0 6 * * MON", zone = "America/Chicago")
     public void cleanDates() {
-        outOfOffices
-                .values()
-                .forEach(ooos -> ooos.removeIf(
+        playerManager.getPlayers()
+                .forEach(players -> players.getOutOfOffices().removeIf(
                         ooo -> ooo.getEnd().isBefore(LocalDate.now())));
 
         persist();
@@ -160,9 +115,9 @@ public class OutOfOfficeManager {
      * @return The list of people out on that day.
      */
     public List<Snowflake> whoIsOutOn(LocalDate when) {
-        return outOfOffices.values()
+        return playerManager.getPlayers()
                 .stream()
-                .flatMap(Collection::stream)
+                .flatMap(p -> p.getOutOfOffices().stream())
                 .filter(ooo -> testInDate(when, ooo.getStart(), ooo.getEnd()))
                 .map(OutOfOffice::getPlayer)
                 .distinct()
@@ -180,10 +135,10 @@ public class OutOfOfficeManager {
     public List<OutOfOffice> getUpcoming(Set<Snowflake> people, Period scope) {
         var now = LocalDate.now();
         var future = now.plus(scope);
-        return outOfOffices.entrySet()
+        return playerManager.getPlayers()
                 .stream()
-                .filter(entry -> people.contains(entry.getKey()))
-                .map(Map.Entry::getValue)
+                .filter(entry -> people.contains(entry.getId()))
+                .map(Player::getOutOfOffices)
                 .flatMap(Collection::stream)
                 .filter(ooo -> {
                     var isEndDateAfterNow = ooo.getEnd().compareTo(now) >= 0;

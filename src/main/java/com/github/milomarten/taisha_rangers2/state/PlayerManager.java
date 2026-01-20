@@ -15,10 +15,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -51,13 +48,21 @@ public class PlayerManager {
                 .subscribe();
     }
 
-    private void persist() {
+    public void persist() {
         this.persister.persist(KEY, this.players)
                 .onErrorResume(ex -> {
                     log.error("Error persisting parties", ex);
                     return Mono.empty();
                 })
                 .subscribe();
+    }
+
+    public Player getPlayerOrCreate(Snowflake id) {
+        return players.computeIfAbsent(id, k -> new Player(id));
+    }
+
+    public List<Player> getPlayers() {
+        return new ArrayList<>(players.values());
     }
 
     public Optional<ZoneId> getUsualPlayerTimezone(Snowflake id) {
