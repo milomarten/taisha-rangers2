@@ -6,13 +6,14 @@ import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterPar
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.PlayerManager;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
-import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 
 @Component("set-timezone")
 public class SetTimezoneCommand extends LocalizedCommandSpec<SetTimezoneCommand.Parameters> {
@@ -41,11 +42,13 @@ public class SetTimezoneCommand extends LocalizedCommandSpec<SetTimezoneCommand.
                 params.userId,
                 params.timezone
         );
-        var now = ZonedDateTime.now(params.timezone);
-        return localizationFactory.createResponse(
-                "command.set-timezone.response",
-                FormatUtils.formatShortDateTime(now)
-        );
+        return localizationFactory.createResponse((src, locale) -> {
+            var start = src.getMessage("command.set-timezone.response", null, locale);
+            var nowFormatted = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL)
+                    .localizedBy(locale)
+                    .format(ZonedDateTime.now(params.timezone));
+            return start + " " + nowFormatted;
+        });
     }
 
     @Data
