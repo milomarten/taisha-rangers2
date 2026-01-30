@@ -1,6 +1,11 @@
 spring:
   application:
     name: taisha-rangers2
+  datasource:
+    url: jdbc:h2:mem:mydb
+    username: milomarten
+    password: password
+    driverClassName: org.h2.Driver
 
 #persistence:
 #  session-manager:
