@@ -1,8 +1,10 @@
-package com.github.milomarten.taisha_rangers2.model;
+package com.github.milomarten.taisha_rangers2.repository.model;
 
 import discord4j.common.util.Snowflake;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -12,12 +14,17 @@ import java.util.Locale;
 
 @Entity
 @Table(name = "PARTY")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class PartyDB {
     @Id
     @GeneratedValue
     @Column(name = "ID")
     private long id;
+    @Column(unique = true, nullable = false)
+    private String name;
+    @Column(nullable = false)
     private Snowflake dm;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -1,16 +1,19 @@
-package com.github.milomarten.taisha_rangers2.model;
+package com.github.milomarten.taisha_rangers2.repository.model;
 
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "RESPONSES")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class PlayerResponseDB {
     @Id
     @GeneratedValue
