@@ -58,8 +58,8 @@ public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Paramete
             }
         }
 
-        var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, playerTimezone);
-        var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, playerTimezone);
+        var startTime = params.startTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.startTime, playerTimezone, false);
+        var endTime = params.endTime == null ? null : computeContextualTime(session.getProposedStartTime(), params.endTime, playerTimezone, true);
         pr.yes(startTime, endTime);
         return getResponseString(params.getUsername(), startTime, endTime)
                 .ephemeral(false);
@@ -68,14 +68,15 @@ public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Paramete
     static ZonedDateTime computeContextualTime(
             ZonedDateTime origin,
             LocalTime time,
-            ZoneId timezone
+            ZoneId timezone,
+            boolean rolloverForEarlierTime
     ) {
         var originInTheRightTimezone = origin.withZoneSameInstant(timezone);
         var originStartTime = originInTheRightTimezone.toLocalTime();
-        if (time.isAfter(originStartTime)) {
-            return originInTheRightTimezone.with(time);
-        } else if (time.equals(originStartTime)) {
+        if (time.equals(originStartTime)) {
             return originInTheRightTimezone;
+        } else if (time.isAfter(originStartTime) || !rolloverForEarlierTime) {
+            return originInTheRightTimezone.with(time);
         } else {
             var hoursBefore = Duration.between(time, originStartTime).toHours();
             if (hoursBefore <= 8) {
