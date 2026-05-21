@@ -5,6 +5,7 @@ import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
+import com.github.milomarten.taisha_rangers2.util.SessionDateUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class FormalizeStartSessionCommand extends AbstractSessionAdminCommand<Fo
 
     @Override
     protected CommandResponse doProtectedAction(Parameters params, NextSession session) {
-        var estimatedStart = DateUtil.parseCasualDateTime(params.getEstimatedStart(), session.getParty().getUsualTime());
+        var estimatedStart = SessionDateUtil.parseDatePossibleOptions(params.getEstimatedStart(), session.getParty().getUsualTime());
         session.setStartTime(estimatedStart);
         return localizationFactory.createResponse("command.set-start.response", FormatUtils.formatShortDateTime(session.getStartTime()));
     }

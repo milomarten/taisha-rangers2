@@ -7,12 +7,14 @@ import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.*;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
+import com.github.milomarten.taisha_rangers2.util.SessionDateUtil;
 import discord4j.common.util.Snowflake;
 import discord4j.rest.util.AllowedMentions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,7 +68,7 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
             proposedStart =
                     params.proposedStart.isEmpty() ?
                             party.getUsualTime().getNextPossibleTime() :
-                            parseTimestampFromStringAndOptionalContext(params.proposedStart, party.getUsualTime());
+                            SessionDateUtil.parseDatePossibleOptions(params.proposedStart, party.getUsualTime());
             Objects.requireNonNull(proposedStart); // solely to pop down into the catch block.
         } catch (RuntimeException e) {
             return localizationFactory.createResponse("command.init.error.unable-to-deduce-time")
@@ -95,21 +97,6 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
                     .ephemeral(false)
                     .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
         }
-    }
-
-    private ZonedDateTime parseTimestampFromStringAndOptionalContext(String value, PartyTime usualTime) {
-        try {
-            return DateUtil.parseCasualDateTime(value, usualTime);
-        } catch (RuntimeException e) {
-            return parseTimeFromStringAndContext(value, usualTime);
-        }
-    }
-
-    private ZonedDateTime parseTimeFromStringAndContext(String time, PartyTime context) {
-        var timeParsed = DateUtil.parseCasualTime(time);
-        if (timeParsed == null) { return null; }
-        return context.getNextPossibleTime()
-                .with(timeParsed);
     }
 
     private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
