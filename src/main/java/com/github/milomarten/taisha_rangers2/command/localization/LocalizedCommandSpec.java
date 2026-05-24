@@ -4,9 +4,11 @@ import com.github.milomarten.taisha_rangers2.command.CommandSpec;
 import com.github.milomarten.taisha_rangers2.exception.LocalizedResponseException;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ImmutableApplicationCommandRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 public abstract class LocalizedCommandSpec<PARAM> extends CommandSpec<PARAM> {
     private final String id;
 
@@ -44,6 +46,7 @@ public abstract class LocalizedCommandSpec<PARAM> extends CommandSpec<PARAM> {
                     .respond(event)
                     .then();
         } else {
+            log.error("Exception while executing {}", ex.getClass().getSimpleName(), ex);
             return localizationFactory.createResponse("errors.generic", ex.getClass().getSimpleName(), ex.getMessage())
                     .ephemeral(true)
                     .respond(event)
