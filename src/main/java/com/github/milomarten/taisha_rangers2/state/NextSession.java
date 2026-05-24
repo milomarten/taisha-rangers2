@@ -23,7 +23,7 @@ public class NextSession {
     // Adaptions from the old way
     public Snowflake getPing() { return party.getPing(); }
     public Snowflake getGm() { return party.getDm(); }
-    public int getNumberOfPlayers() { return party.getPlayers().size(); }
+    public int getNumberOfPlayers() { return party.getPlayerIdentities().size(); }
     public Locale getLocale() { return Objects.requireNonNullElse(party.getLocale(), Locale.US); }
 
     @JsonIgnore
@@ -53,7 +53,8 @@ public class NextSession {
      */
     @JsonIgnore
     public Stream<PlayerResponse> getHydratedPlayerResponses() {
-        return getParty().getPlayers()
+        return getParty().getPlayerIdentities()
+                .keySet()
                 .stream()
                 .map(id -> {
                     var playerResponse = getPlayerResponses().get(id);

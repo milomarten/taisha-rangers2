@@ -25,7 +25,7 @@ public class RemovePlayerCommand extends AbstractPartyAdminCommand<RemovePlayerC
 
     @Override
     protected CommandResponse doProtectedPartyAction(Party party, Parameters params) {
-        var worked = party.getPlayers().remove(params.playerToRemove);
+        var worked = party.getPlayerIdentities().remove(params.playerToRemove) != null;
         if (worked) {
             return localizationFactory.createResponse(
                     "command.remove-player.response",

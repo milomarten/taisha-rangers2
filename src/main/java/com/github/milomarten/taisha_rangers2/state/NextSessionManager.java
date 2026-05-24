@@ -123,7 +123,7 @@ public class NextSessionManager {
 
     public <T> Optional<T> playerDoAndReturn(Snowflake channel, Snowflake player, BiFunction<NextSession, PlayerResponse, T> action) {
         return updateAndReturn(channel, s -> {
-            if (!s.getParty().getPlayers().contains(player)) {
+            if (!s.getParty().getPlayerIdentities().containsKey(player)) {
                 throw new NotInParty();
             }
 

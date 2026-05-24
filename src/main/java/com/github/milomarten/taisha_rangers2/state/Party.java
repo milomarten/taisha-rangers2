@@ -1,18 +1,24 @@
 package com.github.milomarten.taisha_rangers2.state;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import discord4j.common.util.Snowflake;
 import lombok.Data;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 @Data
 public class Party {
     private String name;
     private Snowflake dm;
-    private Set<Snowflake> players = new HashSet<>();
+    private Map<Snowflake, PlayerIdentity> playerIdentities = new HashMap<>();
     private Snowflake ping;
     private PartyTime usualTime;
     private Locale locale;
+
+    @JsonSetter
+    public void setPlayers(Set<Snowflake> players) {
+        players.forEach(player -> {
+            playerIdentities.put(player, new PlayerIdentity());
+        });
+    }
 }

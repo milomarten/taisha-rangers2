@@ -56,7 +56,7 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
         if (!Objects.equals(params.getUserId(), party.getDm())) {
             return localizationFactory.createResponse("errors.party.no-access", params.partyName)
                     .ephemeral(true);
-        } else if (party.getPlayers().isEmpty()) {
+        } else if (party.getPlayerIdentities().isEmpty()) {
             return localizationFactory.createResponse("errors.party.no-members", params.partyName)
                     .ephemeral(true);
         }
@@ -115,7 +115,7 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
     private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
         var whoOut = new ArrayList<>(oooManager.whoIsOutOn(when.toLocalDate()));
         var relevant = new HashSet<>(Set.of(party.getDm()));
-        relevant.addAll(party.getPlayers());
+        relevant.addAll(party.getPlayerIdentities().keySet());
         whoOut.retainAll(relevant);
         return whoOut;
     }

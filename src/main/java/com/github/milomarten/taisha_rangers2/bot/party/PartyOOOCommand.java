@@ -41,11 +41,11 @@ public class PartyOOOCommand extends LocalizedCommandSpec<PartyOOOCommand.Parame
             return localizationFactory.createResponse("errors.party.no-match", params.getPartyName());
         }
         var party = partyMaybe.get();
-        if (party.getPlayers().isEmpty()) {
+        if (party.getPlayerIdentities().isEmpty()) {
             return localizationFactory.createResponse("errors.party.no-players", params.getPartyName());
         }
 
-        var toCheck = new HashSet<>(party.getPlayers());
+        var toCheck = new HashSet<>(party.getPlayerIdentities().keySet());
         toCheck.add(party.getDm());
         var ooos = oooManager.getUpcoming(toCheck, Period.ofWeeks(params.period));
         if (ooos.isEmpty()) {
