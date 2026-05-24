@@ -1,6 +1,7 @@
 package com.github.milomarten.taisha_rangers2.util;
 
 import com.github.milomarten.taisha_rangers2.state.PartyTime;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -95,12 +96,12 @@ public class DateUtil {
         if (value.isEmpty()) {
             return null;
         } else if (value.length() == 10) {
-            // 2025-08-13. Assume default time and Central
+            // 2025-08-13. Uses the clockFunc and timeFunc to determine the relevant timezone and time.
             return LocalDate.parse(value)
                     .atTime(timeFunc.get())
                     .atZone(clockFunc.get().getZone());
         } else if (value.length() == 5) {
-            // 08-13. Assume relevant year, default time, and Central
+            // 08-13. Uses the clockFunc and timeFunc to determine the relevant year, timezone, and time.
             var md = MonthDay.parse("--" + value);
             var today = LocalDate.now(clockFunc.get());
             int yearOffset = 0;
@@ -109,14 +110,6 @@ public class DateUtil {
             }
             return md.atYear(Year.from(today).getValue() + yearOffset)
                     .atTime(timeFunc.get())
-                    .atZone(clockFunc.get().getZone());
-        } else if (value.length() == 19 || value.length() == 16) {
-            //2025-08-13 08:00:00. Seconds is optional. Assume Central
-            if (value.length() == 16) {
-                value += ":00";
-            }
-            value = value.replace(' ', 'T');
-            return LocalDateTime.parse(value)
                     .atZone(clockFunc.get().getZone());
         } else if (value.contains(",")) {
             // More simple way of specifying a time and a timezone together.
@@ -128,6 +121,14 @@ public class DateUtil {
             var timezone = parseCasualTimezone(tokens[1]);
             return LocalDateTime.parse(tokens[0].replace(' ', 'T'))
                     .atZone(timezone);
+        } else if (value.length() == 19 || value.length() == 16) {
+            //2025-08-13 08:00:00. Seconds is optional. Assume Central
+            if (value.length() == 16) {
+                value += ":00";
+            }
+            value = value.replace(' ', 'T');
+            return LocalDateTime.parse(value)
+                    .atZone(clockFunc.get().getZone());
         } else if(value.contains("[")) {
             // Allows for a complete string if you so desire.
             //2025-08-13T08:00:00-05:00[America/Chicago]
@@ -391,6 +392,27 @@ public class DateUtil {
         }
     }
 
+    private static final Map<String, DayOfWeek> WEEK_ABBRS = new HashMap<>();
+    static {
+        for (var dow : DayOfWeek.values()) {
+            WEEK_ABBRS.put(dow.toString().substring(0, 3), dow);
+        }
+    }
+
+    public static DayOfWeek parseCasualDayOfWeek(String value) {
+        var asCaps = value.toUpperCase();
+        DayOfWeek parse;
+        if (asCaps.length() == 3) {
+            parse = WEEK_ABBRS.get(asCaps);
+        } else {
+            parse = EnumUtils.getEnum(DayOfWeek.class, asCaps);
+        }
+        if (parse == null) {
+            throw new IllegalArgumentException("Unknown DOW " + value);
+        }
+        return parse;
+    }
+
     private static final DateTimeFormatter PRETTY
             = DateTimeFormatter.ofPattern("MMM dd");
 
@@ -417,5 +439,32 @@ public class DateUtil {
      */
     public static String getPrettyDate(LocalDate date, Locale locale) {
         return date.format(PRETTY.localizedBy(locale));
+    }
+
+    /**
+     * Get the next ZonedDateTime after now that matches the DayOfWeek and LocalTime.
+     * Using Now as a reference point, scroll forward until a date is found that is on the specified DayOfWeek
+     * and provided LocalTime.
+     * This method will only move forward. Thus, if now happens to be on the starting day of week and at that exact time,
+     * it will still advance by seven days exactly.
+     * @param now The origin time
+     * @param dowItNeedsToBe The DayOfWeek the return ZonedDateTime must be
+     * @param timeItNeedsToBe The LocalTime the return ZonedDateTime must be
+     * @return The ZonedDateTime matching these criteria
+     */
+    public static ZonedDateTime getNextPossibleTime(ZonedDateTime now, DayOfWeek dowItNeedsToBe, LocalTime timeItNeedsToBe) {
+        if (now.getDayOfWeek() == dowItNeedsToBe && now.toLocalTime().isBefore(timeItNeedsToBe)) {
+            return now.with(timeItNeedsToBe);
+        }
+
+        // We need to scroll forward until we hit the requested date. with() doesn't work because
+        // it can go backwards sometimes.
+        int dayOffset = dowItNeedsToBe.getValue() - now.plusDays(1).getDayOfWeek().getValue();
+        if (dayOffset < 0) {
+            dayOffset += 7;
+        }
+        return now
+                .plusDays(dayOffset + 1)
+                .with(timeItNeedsToBe);
     }
 }

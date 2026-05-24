@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.state;
 
+import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,28 +12,29 @@ import java.time.temporal.ChronoField;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PartyTime {
+    public static Clock clock;
+
     private DayOfWeek dayOfWeek;
     private LocalTime timeOfDay;
     private ZoneId timezone;
 
+    private ZonedDateTime now() {
+        return clock == null ? ZonedDateTime.now(timezone) : ZonedDateTime.now(clock);
+    }
+
     public ZonedDateTime getNextPossibleTime() {
-        return getNextPossibleTime(Clock.system(timezone));
+        return DateUtil.getNextPossibleTime(now(), dayOfWeek, timeOfDay);
+    }
+
+    public ZonedDateTime getNextPossibleTime(LocalTime atTime) {
+        return DateUtil.getNextPossibleTime(now(), dayOfWeek, atTime);
+    }
+
+    public ZonedDateTime getNextPossibleTime(DayOfWeek atDow) {
+        return DateUtil.getNextPossibleTime(now(), atDow, timeOfDay);
     }
 
     public ZonedDateTime getNextPossibleTime(Clock clock) {
-        var now = ZonedDateTime.now(clock);
-        if (now.getDayOfWeek() == this.dayOfWeek && now.toLocalTime().isBefore(this.timeOfDay)) {
-            return now.with(this.timeOfDay);
-        }
-
-        // We need to scroll forward until we hit the requested date. with() doesn't work because
-        // it can go backwards sometimes.
-        int dayOffset = this.dayOfWeek.getValue() - now.plusDays(1).getDayOfWeek().getValue();
-        if (dayOffset < 0) {
-            dayOffset += 7;
-        }
-        return now
-                .plusDays(dayOffset + 1)
-                .with(timeOfDay);
+        return DateUtil.getNextPossibleTime(ZonedDateTime.now(clock), dayOfWeek, timeOfDay);
     }
 }

@@ -18,7 +18,7 @@ class YesCommandTest {
     public void testComputeTime_OneHourAfter_SameTZ() {
         var newTime = LocalTime.of(20, 30);
 
-        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, CENTRAL);
+        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, CENTRAL, true);
         assertEquals("2025-08-15T20:30-05:00[America/Chicago]", adjusted.toString());
     }
 
@@ -26,7 +26,7 @@ class YesCommandTest {
     public void testComputeTime_OneHourBefore_SameTZ() {
         var newTime = LocalTime.of(19, 30);
 
-        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, CENTRAL);
+        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, CENTRAL, true);
         assertEquals("2025-08-15T19:30-05:00[America/Chicago]", adjusted.toString());
     }
 
@@ -34,7 +34,7 @@ class YesCommandTest {
     public void testComputeTime_PastMidnight_SameTZ() {
         var newTime = LocalTime.of(0, 30);
 
-        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, CENTRAL);
+        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, CENTRAL, true);
         assertEquals("2025-08-16T00:30-05:00[America/Chicago]", adjusted.toString());
     }
 
@@ -43,7 +43,7 @@ class YesCommandTest {
         // "I can start at 8:30pm Eastern Time" -> 7:30pm Central
         var newTime = LocalTime.of(20, 30);
 
-        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, EASTERN);
+        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, EASTERN, true);
         assertEquals("2025-08-15T19:30-05:00[America/Chicago]", adjusted.withZoneSameInstant(CENTRAL).toString());
     }
 
@@ -52,7 +52,7 @@ class YesCommandTest {
         // "I can start at 9:30pm Eastern Time" -> 8:30pm Central
         var newTime = LocalTime.of(21, 30);
 
-        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, EASTERN);
+        var adjusted = YesCommand.computeContextualTime(EIGHT_PM, newTime, EASTERN, true);
         assertEquals("2025-08-15T20:30-05:00[America/Chicago]", adjusted.withZoneSameInstant(CENTRAL).toString());
     }
 }
