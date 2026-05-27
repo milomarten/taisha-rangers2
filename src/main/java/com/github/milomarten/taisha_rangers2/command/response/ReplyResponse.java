@@ -1,25 +1,32 @@
 package com.github.milomarten.taisha_rangers2.command.response;
 
+import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.component.TopLevelMessageComponent;
 import discord4j.discordjson.possible.Possible;
 import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Encapsulates various options for replying to a user
  */
 @RequiredArgsConstructor
-public class ReplyResponse implements CommandResponse {
+public class ReplyResponse implements CommandResponse, ButtonResponse {
     private final String message;
     private boolean ephemeral;
     private AllowedMentions allowedMentions;
+    private final List<TopLevelMessageComponent> components = new ArrayList<>();
 
     @Override
     public Mono<?> respond(ChatInputInteractionEvent event) {
         return event.reply(getMessage(event))
                 .withEphemeral(ephemeral)
-                .withAllowedMentions(Possible.ofNullable(allowedMentions));
+                .withAllowedMentions(Possible.ofNullable(allowedMentions))
+                .withComponents(components.isEmpty() ? Possible.absent() : Possible.of(components));
     }
 
     protected String getMessage(ChatInputInteractionEvent event) {
@@ -43,5 +50,20 @@ public class ReplyResponse implements CommandResponse {
     public ReplyResponse allowedMentions(AllowedMentions allowedMentions) {
         this.allowedMentions = allowedMentions;
         return this;
+    }
+
+    public ReplyResponse component(TopLevelMessageComponent component) {
+        this.components.add(component);
+        return this;
+    }
+
+    @Override
+    public Mono<?> respond(ButtonInteractionEvent event) {
+        return event.reply(getMessage(event))
+                .withEphemeral(ephemeral);
+    }
+
+    protected String getMessage(ButtonInteractionEvent event) {
+        return message;
     }
 }

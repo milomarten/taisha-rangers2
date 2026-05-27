@@ -1,7 +1,9 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
+import com.github.milomarten.taisha_rangers2.command.GatewayVisitor;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
+import com.github.milomarten.taisha_rangers2.command.response.ButtonResponse;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.PlayerManager;
@@ -9,6 +11,8 @@ import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
+import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import lombok.Data;
@@ -19,7 +23,7 @@ import reactor.core.publisher.Mono;
 import java.time.*;
 
 @Component("yes")
-public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Parameters> {
+public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Parameters> implements GatewayVisitor {
     private final PlayerManager playerManager;
 
     public YesCommand(PlayerManager playerManager) {
@@ -98,6 +102,23 @@ public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Paramete
             return localizationFactory.createResponse("command.yes.response.start.end", username,
                     FormatUtils.formatShortTime(start), FormatUtils.formatShortTime(end));
         }
+    }
+
+    @Override
+    public void visit(GatewayDiscordClient gateway) {
+        gateway.on(ButtonInteractionEvent.class, button -> {
+            if ("yes".equalsIgnoreCase(button.getCustomId())) {
+                var p = new Parameters();
+                p.setUser(button.getUser());
+                p.setChannelId(button.getInteraction().getChannelId());
+
+                var response = doAction(p);
+                if (response instanceof ButtonResponse br) {
+                    return br.respond(button);
+                }
+            }
+            return Mono.empty();
+        }).subscribe();
     }
 
     @Data

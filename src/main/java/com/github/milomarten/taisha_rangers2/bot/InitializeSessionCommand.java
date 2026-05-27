@@ -9,6 +9,8 @@ import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import com.github.milomarten.taisha_rangers2.util.SessionDateUtil;
 import discord4j.common.util.Snowflake;
+import discord4j.core.object.component.ActionRow;
+import discord4j.core.object.component.Button;
 import discord4j.rest.util.AllowedMentions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -95,7 +97,8 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
             var pingText = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
             return localizationFactory.createResponse("command.init.response.success", pingText, FormatUtils.formatShortDateTime(proposedStart))
                     .ephemeral(false)
-                    .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
+                    .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build())
+                    .component(createYesNoButtons());
         }
     }
 
@@ -105,6 +108,13 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
         relevant.addAll(party.getPlayerIdentities().keySet());
         whoOut.retainAll(relevant);
         return whoOut;
+    }
+
+    private ActionRow createYesNoButtons() {
+        return ActionRow.of(
+                Button.success("yes", "Yes!"),
+                Button.danger("no", "Nope!")
+        );
     }
 
     @Data

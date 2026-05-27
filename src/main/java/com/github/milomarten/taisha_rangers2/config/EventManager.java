@@ -1,6 +1,7 @@
 package com.github.milomarten.taisha_rangers2.config;
 
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.GatewayVisitor;
 import com.github.milomarten.taisha_rangers2.command.autocomplete.AutocompleteSupport;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -25,6 +27,8 @@ public class EventManager {
 
     private final Map<String, CommandSpec<?>> commandHandlers;
     private final Map<String, AutocompleteSupport> autocompleteHandlers;
+
+    private final List<GatewayVisitor> gatewayVisitors;
 
     @PostConstruct
     public void init() {
@@ -76,6 +80,13 @@ public class EventManager {
            }
            return Mono.empty();
         }).subscribe();
+
+        if (gatewayVisitors != null) {
+            gatewayVisitors.forEach(gv -> {
+                log.info("Registering gateway visitor {}", gv.getClass().getSimpleName());
+                gv.visit(gateway);
+            });
+        }
     }
 
     private Mono<Long> bulkCreate(long guildId) {

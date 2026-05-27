@@ -1,6 +1,7 @@
 package com.github.milomarten.taisha_rangers2.command.localization;
 
 import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
+import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -76,7 +77,15 @@ public class LocalizationFactory implements Localizer {
 
         @Override
         protected String getMessage(ChatInputInteractionEvent event) {
-            var locale = event.getInteraction().getUserLocale();
+            return getMessage(event.getInteraction().getUserLocale());
+        }
+
+        @Override
+        protected String getMessage(ButtonInteractionEvent event) {
+            return getMessage(event.getInteraction().getUserLocale());
+        }
+
+        public String getMessage(String locale) {
             return messageSource.getMessage(this.key, this.args, DiscordLocales.fromDiscord(locale));
         }
     }
