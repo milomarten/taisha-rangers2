@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.response;
 
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import discord4j.core.object.component.TopLevelMessageComponent;
 import discord4j.discordjson.possible.Possible;
 import discord4j.rest.util.AllowedMentions;
@@ -15,21 +16,21 @@ import java.util.List;
  * Encapsulates various options for replying to a user
  */
 @RequiredArgsConstructor
-public class ReplyResponse implements CommandResponse, ButtonResponse {
+public class ReplyResponse implements CommandResponse {
     private final String message;
     private boolean ephemeral;
     private AllowedMentions allowedMentions;
     private final List<TopLevelMessageComponent> components = new ArrayList<>();
 
     @Override
-    public Mono<?> respond(ChatInputInteractionEvent event) {
+    public Mono<?> respond(DeferrableInteractionEvent event) {
         return event.reply(getMessage(event))
                 .withEphemeral(ephemeral)
                 .withAllowedMentions(Possible.ofNullable(allowedMentions))
                 .withComponents(components.isEmpty() ? Possible.absent() : Possible.of(components));
     }
 
-    protected String getMessage(ChatInputInteractionEvent event) {
+    protected String getMessage(DeferrableInteractionEvent event) {
         return message;
     }
 
@@ -55,15 +56,5 @@ public class ReplyResponse implements CommandResponse, ButtonResponse {
     public ReplyResponse component(TopLevelMessageComponent component) {
         this.components.add(component);
         return this;
-    }
-
-    @Override
-    public Mono<?> respond(ButtonInteractionEvent event) {
-        return event.reply(getMessage(event))
-                .withEphemeral(ephemeral);
-    }
-
-    protected String getMessage(ButtonInteractionEvent event) {
-        return message;
     }
 }

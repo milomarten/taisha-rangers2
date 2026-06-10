@@ -4,6 +4,7 @@ import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
+import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
 import com.github.milomarten.taisha_rangers2.state.*;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
@@ -14,6 +15,7 @@ import discord4j.core.object.component.Button;
 import discord4j.rest.util.AllowedMentions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
 import java.time.DateTimeException;
@@ -95,10 +97,14 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
                     .ephemeral(true);
         } else {
             var pingText = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
-            return localizationFactory.createResponse("command.init.response.success", pingText, FormatUtils.formatShortDateTime(proposedStart))
-                    .ephemeral(false)
-                    .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build())
-                    .component(createYesNoButtons());
+            return localizationFactory.createComplexResponse((ms, locale) -> {
+                var successMsg = ms.getMessage("command.init.response.success",
+                        new Object[]{pingText,  FormatUtils.formatShortDateTime(proposedStart)}, locale);
+                return new ReplyResponse(successMsg)
+                        .ephemeral(false)
+                        .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build())
+                        .component(createYesNoButtons(ms, locale));
+            });
         }
     }
 
@@ -110,10 +116,11 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
         return whoOut;
     }
 
-    private ActionRow createYesNoButtons() {
+    private ActionRow createYesNoButtons(MessageSource ms, Locale locale) {
         return ActionRow.of(
-                Button.success("yes", "Yes!"),
-                Button.danger("no", "Nope!")
+                Button.success("yes", ms.getMessage("command.init.buttons.yes", null, locale)),
+                Button.danger("no", ms.getMessage("command.init.buttons.no", null, locale)),
+                Button.secondary("maybe-PT24H", ms.getMessage("command.init.buttons.maybeTomorrow", null, locale))
         );
     }
 

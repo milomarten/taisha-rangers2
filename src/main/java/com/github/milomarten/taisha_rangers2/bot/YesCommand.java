@@ -3,18 +3,14 @@ package com.github.milomarten.taisha_rangers2.bot;
 import com.github.milomarten.taisha_rangers2.command.GatewayVisitor;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
-import com.github.milomarten.taisha_rangers2.command.response.ButtonResponse;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.PlayerManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
-import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
-import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
-import discord4j.core.object.entity.User;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
@@ -112,10 +108,7 @@ public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Paramete
                 p.setUser(button.getUser());
                 p.setChannelId(button.getInteraction().getChannelId());
 
-                var response = doAction(p);
-                if (response instanceof ButtonResponse br) {
-                    return br.respond(button);
-                }
+                return doAction(p).respond(button);
             }
             return Mono.empty();
         }).subscribe();

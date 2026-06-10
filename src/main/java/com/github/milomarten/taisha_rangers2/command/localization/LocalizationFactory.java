@@ -1,12 +1,15 @@
 package com.github.milomarten.taisha_rangers2.command.localization;
 
+import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.Locale;
 import java.util.function.BiFunction;
@@ -46,10 +49,28 @@ public class LocalizationFactory implements Localizer {
      * Create a localized response which will be translated into the user's language.
      * This allows the caller to control how the message is resolved. This can be useful in particular for custom
      * formatting that the MessageSource does not natively handle, like Java 8 Time objects.
+     * The output of the resolver will be returned as the message, with no other configuration supported. For more
+     * advanced configuration of the final output, see createComplexResponse.
      * @param resolver A function which takes the MessageSource and Locale, to output a response message
      * @return A reply which will invoke the resolver to get the message.
      */
     public LocalizedDynamicReplyResponse createResponse(BiFunction<MessageSource, Locale, String> resolver) {
+        return new LocalizedDynamicReplyResponse(this.messageSource, (ms, locale) -> {
+            var msg = resolver.apply(ms, locale);
+            return new ReplyResponse(msg);
+        });
+    }
+
+    /**
+     * Create a localized response which will be translated into the user's language.
+     * This allows the caller to control how the message is resolved. This can be useful in particular for custom
+     * formatting that the MessageSource does not natively handle, like Java 8 Time objects.
+     * Unlike createResponse, this function can craft a fully-formed ReplyResponse to be sent on to the user, allowing
+     * for translations of several dynamic components.
+     * @param resolver A function which takes the MessageSource and Locale, to output a response message
+     * @return A reply which will invoke the resolver to get the message.
+     */
+    public LocalizedDynamicReplyResponse createComplexResponse(BiFunction<MessageSource, Locale, ReplyResponse> resolver) {
         return new LocalizedDynamicReplyResponse(this.messageSource, resolver);
     }
 
@@ -76,12 +97,7 @@ public class LocalizationFactory implements Localizer {
         }
 
         @Override
-        protected String getMessage(ChatInputInteractionEvent event) {
-            return getMessage(event.getInteraction().getUserLocale());
-        }
-
-        @Override
-        protected String getMessage(ButtonInteractionEvent event) {
+        protected String getMessage(DeferrableInteractionEvent event) {
             return getMessage(event.getInteraction().getUserLocale());
         }
 
@@ -90,20 +106,19 @@ public class LocalizationFactory implements Localizer {
         }
     }
 
-    public static class LocalizedDynamicReplyResponse extends ReplyResponse {
+    public static class LocalizedDynamicReplyResponse implements CommandResponse {
         private final MessageSource messageSource;
-        private final BiFunction<MessageSource, Locale, String> func;
+        private final BiFunction<MessageSource, Locale, ReplyResponse> func;
 
-        private LocalizedDynamicReplyResponse(MessageSource messageSource, BiFunction<MessageSource, Locale, String> func) {
-            super("");
+        private LocalizedDynamicReplyResponse(MessageSource messageSource, BiFunction<MessageSource, Locale, ReplyResponse> func) {
             this.messageSource = messageSource;
             this.func = func;
         }
 
         @Override
-        protected String getMessage(ChatInputInteractionEvent event) {
-            var locale = event.getInteraction().getUserLocale();
-            return func.apply(messageSource, DiscordLocales.fromDiscord(locale));
+        public Mono<?> respond(DeferrableInteractionEvent event) {
+            return func.apply(this.messageSource, DiscordLocales.fromDiscord(event.getInteraction().getUserLocale()))
+                    .respond(event);
         }
     }
 }

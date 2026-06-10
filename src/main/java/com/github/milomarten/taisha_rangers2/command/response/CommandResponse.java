@@ -1,6 +1,6 @@
 package com.github.milomarten.taisha_rangers2.command.response;
 
-import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import reactor.core.publisher.Mono;
 
 /**
@@ -12,7 +12,7 @@ public interface CommandResponse {
      * @param event The context of the event
      * @return A Mono which completes whenever the action finished.
      */
-    Mono<?> respond(ChatInputInteractionEvent event);
+    Mono<?> respond(DeferrableInteractionEvent event);
 
     /**
      * A standard Command Response, to reply to a message

@@ -1,11 +1,9 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.GatewayVisitor;
-import com.github.milomarten.taisha_rangers2.command.response.ButtonResponse;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
-import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import org.springframework.stereotype.Component;
@@ -33,10 +31,7 @@ public class NoCommand extends AbstractSessionPlayerCommand<SessionIdentityParam
                 p.setUser(button.getUser());
                 p.setChannelId(button.getInteraction().getChannelId());
 
-                var response = doAction(p);
-                if (response instanceof ButtonResponse br) {
-                    return br.respond(button);
-                }
+                return doAction(p).respond(button);
             }
             return Mono.empty();
         }).subscribe();
