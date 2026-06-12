@@ -3,6 +3,7 @@ package com.github.milomarten.taisha_rangers2.bot.party;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
+import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
 import com.github.milomarten.taisha_rangers2.state.OutOfOfficeManager;
 import com.github.milomarten.taisha_rangers2.state.PartyManager;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
@@ -52,9 +53,9 @@ public class PartyOOOCommand extends LocalizedCommandSpec<PartyOOOCommand.Parame
             return localizationFactory.createResponse("command.party-ooo.response.none", params.period)
                     .ephemeral(true);
         } else {
-            return localizationFactory.createResponse((source, locale) -> {
+            return localizationFactory.createComplexResponse((source, locale) -> {
                var prefix = source.getMessage("command.party-ooo.response.some", new Object[]{params.period}, locale);
-               return ooos.stream()
+               var msg = ooos.stream()
                        .map(ooo -> {
                            var item = "- " + FormatUtils.pingUser(ooo.getPlayer());
                            String period;
@@ -66,8 +67,8 @@ public class PartyOOOCommand extends LocalizedCommandSpec<PartyOOOCommand.Parame
                            return item + "(" + period + ")";
                        })
                        .collect(Collectors.joining("\n", prefix + "\n", ""));
-            })
-                    .ephemeral(true);
+               return new ReplyResponse(msg).ephemeral(true);
+            });
         }
     }
 
