@@ -1,13 +1,11 @@
 package com.github.milomarten.taisha_rangers2.config;
 
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
+import com.github.milomarten.taisha_rangers2.command.DiscordEventListener;
 import com.github.milomarten.taisha_rangers2.command.GatewayVisitor;
-import com.github.milomarten.taisha_rangers2.command.autocomplete.AutocompleteSupport;
 import discord4j.core.GatewayDiscordClient;
-import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +24,6 @@ public class EventManager {
     private final GatewayDiscordClient gateway;
 
     private final Map<String, CommandSpec<?>> commandHandlers;
-    private final Map<String, AutocompleteSupport> autocompleteHandlers;
-
-    private final List<GatewayVisitor> gatewayVisitors;
 
     @PostConstruct
     public void init() {
@@ -46,47 +41,23 @@ public class EventManager {
                 }
             }).subscribe();
         }
+    }
 
-        if (!autocompleteHandlers.isEmpty()) {
-            gateway.on(ChatInputAutoCompleteEvent.class, interaction -> {
-                var autocorrectHandler = autocompleteHandlers.get(interaction.getCommandName());
-                if (autocorrectHandler != null) {
-                    var possibilities = autocorrectHandler.getSuggestions(
-                            interaction.getFocusedOption().getName(),
-                            interaction.getFocusedOption().getValue()
-                                    .map(ApplicationCommandInteractionOptionValue::asString)
-                                    .orElse("")
-                    );
-
-                    return interaction.respondWithSuggestions(possibilities);
-                } else {
-                    return Mono.empty();
-                }
-            });
+    @DiscordEventListener
+    public Mono<Void> handleBulkCreateMessage(MessageCreateEvent mce) {
+        if (mce.getMember().isEmpty() &&
+                mce.getMessage().getAuthor().isPresent() &&
+                mce.getMessage().getAuthor()
+                        .map(u -> u.getId().asLong() == 248612704019808258L)
+                        .orElse(false) &&
+                mce.getMessage().getContent().equals("!")) {
+            return bulkCreate(902681369405173840L) // Martens & Magic
+                    .flatMap(count -> {
+                        return mce.getMessage().getChannel()
+                                .flatMap(channel -> channel.createMessage("Created " + count + " commands"));
+                    }).then();
         }
-
-        gateway.on(MessageCreateEvent.class, mce -> {
-           if (mce.getMember().isEmpty() &&
-                   mce.getMessage().getAuthor().isPresent() &&
-                   mce.getMessage().getAuthor()
-                                   .map(u -> u.getId().asLong() == 248612704019808258L)
-                                   .orElse(false) &&
-                   mce.getMessage().getContent().equals("!")) {
-               return bulkCreate(902681369405173840L) // Martens & Magic
-                       .flatMap(count -> {
-                           return mce.getMessage().getChannel()
-                                   .flatMap(channel -> channel.createMessage("Created " + count + " commands"));
-                       });
-           }
-           return Mono.empty();
-        }).subscribe();
-
-        if (gatewayVisitors != null) {
-            gatewayVisitors.forEach(gv -> {
-                log.info("Registering gateway visitor {}", gv.getClass().getSimpleName());
-                gv.visit(gateway);
-            });
-        }
+        return Mono.empty();
     }
 
     private Mono<Long> bulkCreate(long guildId) {

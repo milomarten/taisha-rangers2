@@ -1,17 +1,15 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
-import com.github.milomarten.taisha_rangers2.command.GatewayVisitor;
+import com.github.milomarten.taisha_rangers2.command.DiscordEventListener;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
-import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -20,7 +18,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 
 @Component("maybe")
-public class MaybeCommand extends AbstractSessionPlayerCommand<MaybeCommand.Parameters> implements GatewayVisitor {
+public class MaybeCommand extends AbstractSessionPlayerCommand<MaybeCommand.Parameters> {
     private static final Duration MINUMUM = Duration.ofMinutes(15);
 
     private final TimingHelper timingHelper;
@@ -62,21 +60,19 @@ public class MaybeCommand extends AbstractSessionPlayerCommand<MaybeCommand.Para
         }
     }
 
-    @Override
-    public void visit(GatewayDiscordClient gateway) {
-        gateway.on(ButtonInteractionEvent.class, button -> {
-            if (Strings.CS.startsWith(button.getCustomId(), "maybe")) {
-                var rawDuration = button.getCustomId().split("-")[1];
+    @DiscordEventListener
+    public Mono<?> handleMaybeButton(ButtonInteractionEvent button) {
+        if (Strings.CS.startsWith(button.getCustomId(), "maybe")) {
+            var rawDuration = button.getCustomId().split("-")[1];
 
-                var parameters = new Parameters();
-                parameters.setUser(button.getUser());
-                parameters.setChannelId(button.getInteraction().getChannelId());
-                parameters.setTimeFromNow(Duration.parse(rawDuration));
+            var parameters = new Parameters();
+            parameters.setUser(button.getUser());
+            parameters.setChannelId(button.getInteraction().getChannelId());
+            parameters.setTimeFromNow(Duration.parse(rawDuration));
 
-                return doAction(parameters).respond(button);
-            }
-            return Mono.empty();
-        }).subscribe();
+            return doAction(parameters).respond(button);
+        }
+        return Mono.empty();
     }
 
     @Data

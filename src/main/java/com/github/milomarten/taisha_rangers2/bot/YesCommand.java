@@ -1,6 +1,6 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
-import com.github.milomarten.taisha_rangers2.command.GatewayVisitor;
+import com.github.milomarten.taisha_rangers2.command.DiscordEventListener;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
@@ -9,17 +9,19 @@ import com.github.milomarten.taisha_rangers2.state.PlayerManager;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
-import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.time.*;
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Component("yes")
-public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Parameters> implements GatewayVisitor {
+public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Parameters> {
     private final PlayerManager playerManager;
 
     public YesCommand(PlayerManager playerManager) {
@@ -100,18 +102,16 @@ public class YesCommand extends AbstractSessionPlayerCommand<YesCommand.Paramete
         }
     }
 
-    @Override
-    public void visit(GatewayDiscordClient gateway) {
-        gateway.on(ButtonInteractionEvent.class, button -> {
-            if ("yes".equalsIgnoreCase(button.getCustomId())) {
-                var p = new Parameters();
-                p.setUser(button.getUser());
-                p.setChannelId(button.getInteraction().getChannelId());
+    @DiscordEventListener
+    public Mono<?> handleYesButton(ButtonInteractionEvent button) {
+        if ("yes".equalsIgnoreCase(button.getCustomId())) {
+            var p = new Parameters();
+            p.setUser(button.getUser());
+            p.setChannelId(button.getInteraction().getChannelId());
 
-                return doAction(p).respond(button);
-            }
-            return Mono.empty();
-        }).subscribe();
+            return doAction(p).respond(button);
+        }
+        return Mono.empty();
     }
 
     @Data
