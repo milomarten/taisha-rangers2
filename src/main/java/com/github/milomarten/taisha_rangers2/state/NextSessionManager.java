@@ -1,18 +1,15 @@
 package com.github.milomarten.taisha_rangers2.state;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.milomarten.taisha_rangers2.bot.SessionIdentityParameters;
-import com.github.milomarten.taisha_rangers2.exception.*;
-import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
-import com.github.milomarten.taisha_rangers2.persistence.NoOpPersister;
+import com.github.milomarten.taisha_rangers2.exception.NotDM;
+import com.github.milomarten.taisha_rangers2.exception.NotInParty;
+import com.github.milomarten.taisha_rangers2.exception.SessionAlreadyExistsException;
 import com.github.milomarten.taisha_rangers2.persistence.Persister;
 import discord4j.common.util.Snowflake;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -25,6 +22,7 @@ import java.util.function.Function;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class NextSessionManager {
     private static final String KEY = "session";
     private static final TypeReference<Map<Snowflake, NextSession>> MAP_TYPE
@@ -33,17 +31,6 @@ public class NextSessionManager {
     private final Map<Snowflake, NextSession> nextSessions = Collections.synchronizedMap(new HashMap<>());
     private final Persister persister;
     private final List<NextSessionListener> listeners;
-
-    @Autowired
-    public NextSessionManager(
-            @Value("${persistence.session-manager.base-path:}") String path,
-            ObjectMapper om,
-            List<NextSessionListener> listeners) {
-        this.persister = StringUtils.isEmpty(path) ?
-                new NoOpPersister() :
-                new JsonFilePersister(path, om);
-        this.listeners = listeners;
-    }
 
     @PostConstruct
     public void init() {

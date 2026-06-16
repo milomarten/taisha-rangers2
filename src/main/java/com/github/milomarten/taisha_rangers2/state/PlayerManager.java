@@ -1,16 +1,11 @@
 package com.github.milomarten.taisha_rangers2.state;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.milomarten.taisha_rangers2.persistence.JsonFilePersister;
-import com.github.milomarten.taisha_rangers2.persistence.NoOpPersister;
 import com.github.milomarten.taisha_rangers2.persistence.Persister;
 import discord4j.common.util.Snowflake;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -19,6 +14,7 @@ import java.util.*;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class PlayerManager {
     private static final String KEY = "player";
     private static final TypeReference<Map<Snowflake, Player>> TYPE =
@@ -27,15 +23,6 @@ public class PlayerManager {
     private final Map<Snowflake, Player> players
             = Collections.synchronizedMap(new HashMap<>());
     private final Persister persister;
-
-    @Autowired
-    public PlayerManager(
-            @Value("${persistence.session-manager.base-path:}") String path,
-            ObjectMapper om) {
-        this.persister = StringUtils.isEmpty(path) ?
-                new NoOpPersister() :
-                new JsonFilePersister(path, om);
-    }
 
     @PostConstruct
     public void init() {
