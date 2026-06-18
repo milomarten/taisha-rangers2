@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameters;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 
 import java.util.List;
@@ -17,6 +18,16 @@ public interface ParameterParser<PARAM> {
      * @return The created parameter object
      */
     PARAM parse(ChatInputInteractionEvent event);
+
+    /**
+     * Parse the subcommand usage into an object
+     * @param event The event to parse from
+     * @param option The subcommand being parsed
+     * @return The created parameter object
+     */
+    default PARAM parse(ChatInputInteractionEvent event, ApplicationCommandInteractionOption option) {
+        return parse(event);
+    }
 
     /**
      * Create the parameter specs for the parameters that make up this object

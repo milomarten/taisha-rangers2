@@ -9,10 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 
 @Component
@@ -63,6 +60,10 @@ public class PartyManager {
 
     public Optional<Party> getParty(String name) {
         return Optional.ofNullable(this.parties.get(name));
+    }
+
+    public List<Party> getParties() {
+        return new ArrayList<>(this.parties.values());
     }
 
     public <T> Optional<T> updatePartyAndReturn(String name, Function<Party, T> func) {

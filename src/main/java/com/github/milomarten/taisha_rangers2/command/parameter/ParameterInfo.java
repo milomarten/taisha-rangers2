@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameter;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 
 import java.util.function.Function;
@@ -28,6 +29,14 @@ public interface ParameterInfo<T> {
     T convert(ChatInputInteractionEvent event, String field);
 
     /**
+     * Pull a field from the command usage and convert it to the correct type.
+     * @param option The command usage to pull from
+     * @param field The name of the field to pull
+     * @return The value used in the command, of the correct type.
+     */
+    T convert(ApplicationCommandInteractionOption option, String field);
+
+    /**
      * Decorate the parameter spec with additional info
      *
      * @param builder   The builder to build on top of
@@ -49,6 +58,11 @@ public interface ParameterInfo<T> {
             @Override
             public U convert(ChatInputInteractionEvent event, String field) {
                 return func.apply(self.convert(event, field));
+            }
+
+            @Override
+            public U convert(ApplicationCommandInteractionOption option, String field) {
+                return func.apply(self.convert(option, field));
             }
 
             @Override

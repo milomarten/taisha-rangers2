@@ -1,5 +1,6 @@
 package com.github.milomarten.taisha_rangers2.config;
 
+import com.github.milomarten.taisha_rangers2.command.CommandHandler;
 import com.github.milomarten.taisha_rangers2.command.CommandSpec;
 import com.github.milomarten.taisha_rangers2.command.DiscordEventListener;
 import discord4j.core.GatewayDiscordClient;
@@ -21,7 +22,7 @@ import java.util.Map;
 public class EventManager {
     private final GatewayDiscordClient gateway;
 
-    private final Map<String, CommandSpec<?>> commandHandlers;
+    private final Map<String, CommandHandler> commandHandlers;
 
     @PostConstruct
     public void init() {
@@ -67,7 +68,7 @@ public class EventManager {
         return gateway.getRestClient().getApplicationId()
                 .flatMapMany(id -> {
                     var commands = commandHandlers.values().stream()
-                                    .map(CommandSpec::toDiscordSpec)
+                                    .map(CommandHandler::toDiscordSpec)
                                     .toList();
                     return gateway.getRestClient().getApplicationService()
                             .bulkOverwriteGuildApplicationCommand(id, guildId, commands);

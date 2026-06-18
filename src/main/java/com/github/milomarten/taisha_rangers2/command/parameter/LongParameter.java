@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameter;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 import discord4j.discordjson.possible.Possible;
 import lombok.Builder;
@@ -49,6 +50,15 @@ public class LongParameter implements ParameterInfo<Long> {
     @Override
     public Long convert(ChatInputInteractionEvent event, String field) {
         return event.getOptionAsLong(field)
+                .or(() -> Optional.ofNullable(this.defaultValue))
+                .orElseThrow();
+    }
+
+    @Override
+    public Long convert(ApplicationCommandInteractionOption option, String field) {
+        return option.getOption(field)
+                .flatMap(a -> a.getValue())
+                .map(a -> a.asLong())
                 .or(() -> Optional.ofNullable(this.defaultValue))
                 .orElseThrow();
     }

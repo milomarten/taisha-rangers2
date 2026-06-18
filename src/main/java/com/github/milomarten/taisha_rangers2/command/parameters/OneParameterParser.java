@@ -3,6 +3,7 @@ package com.github.milomarten.taisha_rangers2.command.parameters;
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import com.github.milomarten.taisha_rangers2.command.parameter.ParameterInfo;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 
 import java.util.List;
@@ -30,6 +31,11 @@ public class OneParameterParser<PARAM> implements ParameterParser<PARAM> {
     @Override
     public PARAM parse(ChatInputInteractionEvent event) {
         return metadata.convert(event, name);
+    }
+
+    @Override
+    public PARAM parse(ChatInputInteractionEvent event, ApplicationCommandInteractionOption option) {
+        return metadata.convert(option, name);
     }
 
     @Override

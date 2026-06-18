@@ -61,6 +61,10 @@ public class NextSessionManager {
         return Optional.ofNullable(this.nextSessions.get(id));
     }
 
+    public List<NextSession> getNextSessions() {
+        return new ArrayList<>(this.nextSessions.values());
+    }
+
     public NextSession createSession(Snowflake channel, Party party, ZonedDateTime proposedStart) {
         if (this.nextSessions.containsKey(channel)) {
             throw new SessionAlreadyExistsException(channel);

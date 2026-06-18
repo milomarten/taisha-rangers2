@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameter;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 import discord4j.discordjson.possible.Possible;
@@ -49,6 +50,16 @@ public class IntParameter implements ParameterInfo<Integer> {
     @Override
     public Integer convert(ChatInputInteractionEvent event, String field) {
         return event.getOptionAsLong(field)
+                .map(Long::intValue)
+                .or(() -> Optional.ofNullable(this.defaultValue))
+                .orElseThrow();
+    }
+
+    @Override
+    public Integer convert(ApplicationCommandInteractionOption option, String field) {
+        return option.getOption(field)
+                .flatMap(a -> a.getValue())
+                .map(a -> a.asLong())
                 .map(Long::intValue)
                 .or(() -> Optional.ofNullable(this.defaultValue))
                 .orElseThrow();

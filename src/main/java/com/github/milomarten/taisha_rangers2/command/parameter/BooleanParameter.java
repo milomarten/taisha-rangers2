@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameter;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 import lombok.Builder;
@@ -37,6 +38,15 @@ public class BooleanParameter implements ParameterInfo<Boolean> {
     @Override
     public Boolean convert(ChatInputInteractionEvent event, String field) {
         return event.getOptionAsBoolean(field)
+                .or(() -> Optional.ofNullable(this.defaultValue))
+                .orElseThrow();
+    }
+
+    @Override
+    public Boolean convert(ApplicationCommandInteractionOption option, String field) {
+        return option.getOption(field)
+                .flatMap(a -> a.getValue())
+                .map(a -> a.asBoolean())
                 .or(() -> Optional.ofNullable(this.defaultValue))
                 .orElseThrow();
     }

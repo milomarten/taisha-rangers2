@@ -10,7 +10,7 @@ import java.util.List;
         webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
 class CommandSpecTest {
-    @Autowired private List<CommandSpec<?>> commands;
+    @Autowired private List<CommandHandler> commands;
 
     @Test
     public void testInitSessionSpec() {

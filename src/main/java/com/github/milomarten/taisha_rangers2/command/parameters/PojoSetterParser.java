@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameters;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +16,10 @@ class PojoSetterParser<PARAM, FIELD> {
 
     public void set(ChatInputInteractionEvent event, PARAM param) {
         this.setter.accept(param, parameter.parse(event));
+    }
+
+    public void set(ChatInputInteractionEvent event, ApplicationCommandInteractionOption option, PARAM param) {
+        this.setter.accept(param, parameter.parse(event, option));
     }
 
     public List<ApplicationCommandOptionData> toDiscordSpec(Localizer localizer) {

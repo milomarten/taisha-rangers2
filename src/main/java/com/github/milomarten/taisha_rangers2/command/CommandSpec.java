@@ -1,34 +1,18 @@
 package com.github.milomarten.taisha_rangers2.command;
 
-import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import com.github.milomarten.taisha_rangers2.command.parameters.NoParameterParser;
 import com.github.milomarten.taisha_rangers2.command.parameters.ParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
-import discord4j.discordjson.json.ApplicationCommandRequest;
-import discord4j.discordjson.json.ImmutableApplicationCommandRequest;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
-import java.math.BigInteger;
-import java.util.Optional;
-import java.util.Set;
-
 @Slf4j
 @RequiredArgsConstructor
 @AllArgsConstructor
-public abstract class CommandSpec<PARAM> implements CommandHandler {
+public abstract class CommandSpec<PARAM> extends AbstractCommandSpec {
     @Setter @Getter ParameterParser<PARAM> parameterParser = NoParameterParser.create();
-    @Setter Set<CommandPermission> permissions = Set.of();
-
-    public ApplicationCommandRequest toDiscordSpec() {
-        return decorate(ApplicationCommandRequest.builder()
-                .defaultMemberPermissions(computeMemberPermissions())
-        ).build();
-    }
-
-    protected abstract ImmutableApplicationCommandRequest.Builder decorate(ImmutableApplicationCommandRequest.Builder builder);
 
     @Override
     public Mono<?> run(ChatInputInteractionEvent event) {
@@ -50,17 +34,5 @@ public abstract class CommandSpec<PARAM> implements CommandHandler {
         return CommandResponse.reply(ex.getMessage(), true)
                 .respond(event)
                 .then();
-    }
-
-    private Optional<String> computeMemberPermissions() {
-        if (permissions.isEmpty()) {
-            return Optional.empty();
-        }
-        BigInteger perms = BigInteger.ZERO;
-        for (var perm : permissions) {
-            BigInteger permAsBigInt = BigInteger.ONE.shiftLeft(perm.bitPosition);
-            perms = perms.or(permAsBigInt);
-        }
-        return Optional.of(perms.toString());
     }
 }

@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameter;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 import discord4j.discordjson.possible.Possible;
@@ -52,6 +53,15 @@ public class DoubleParameter implements ParameterInfo<Double> {
     @Override
     public Double convert(ChatInputInteractionEvent event, String field) {
         return event.getOptionAsDouble(field)
+                .or(() -> Optional.ofNullable(this.defaultValue))
+                .orElseThrow();
+    }
+
+    @Override
+    public Double convert(ApplicationCommandInteractionOption option, String field) {
+        return option.getOption(field)
+                .flatMap(a -> a.getValue())
+                .map(a -> a.asDouble())
                 .or(() -> Optional.ofNullable(this.defaultValue))
                 .orElseThrow();
     }

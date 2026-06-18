@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import reactor.core.publisher.Mono;
@@ -17,6 +18,7 @@ import java.lang.reflect.Method;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnBean(GatewayDiscordClient.class)
 public class EventListenerPostProcessor implements BeanPostProcessor {
     private final GatewayDiscordClient gateway;
 

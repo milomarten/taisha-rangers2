@@ -5,6 +5,8 @@ import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import com.github.milomarten.taisha_rangers2.command.parameter.ParameterInfo;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
+import discord4j.core.object.entity.PartialMember;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.possible.Possible;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,13 @@ public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
     public PARAM parse(ChatInputInteractionEvent event) {
         var instance = constructor.get();
         fieldsFromParameters.forEach(field -> field.set(event, instance));
+        return instance;
+    }
+
+    @Override
+    public PARAM parse(ChatInputInteractionEvent event, ApplicationCommandInteractionOption option) {
+        var instance = constructor.get();
+        fieldsFromParameters.forEach(field -> field.set(event, option, instance));
         return instance;
     }
 
@@ -130,6 +139,20 @@ public class PojoParameterParser<PARAM> implements ParameterParser<PARAM> {
      */
     public static Function<ChatInputInteractionEvent, Snowflake> userId() {
         return event -> event.getUser().getId();
+    }
+
+    /**
+     * A utility method which extracts the username of the user of this command.
+     * If the user is a member, the nickname is preferred, falling back to the username.
+     * Otherwise, the global name is preferred, falling back to the username.
+     * @return A function which, when given a command usage event, returns the username
+     */
+    public static Function<ChatInputInteractionEvent, String> username() {
+        return event -> {
+            var memberMaybe = event.getInteraction().getMember();
+            return memberMaybe.map(PartialMember::getDisplayName).orElseGet(() -> event.getUser().getGlobalName()
+                    .orElse(event.getUser().getUsername()));
+        };
     }
 
     /**

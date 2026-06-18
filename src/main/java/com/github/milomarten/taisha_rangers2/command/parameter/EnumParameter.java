@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.parameter;
 
 import com.github.milomarten.taisha_rangers2.command.localization.Localizer;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
@@ -57,6 +58,16 @@ public class EnumParameter<E extends Enum<E>> implements ParameterInfo<E> {
     @Override
     public E convert(ChatInputInteractionEvent event, String field) {
         return event.getOptionAsLong(field)
+                .map(s -> ArrayUtils.get(universe, s.intValue()))
+                .or(() -> Optional.ofNullable(defaultValue))
+                .orElseThrow();
+    }
+
+    @Override
+    public E convert(ApplicationCommandInteractionOption option, String field) {
+        return option.getOption(field)
+                .flatMap(a -> a.getValue())
+                .map(a -> a.asLong())
                 .map(s -> ArrayUtils.get(universe, s.intValue()))
                 .or(() -> Optional.ofNullable(defaultValue))
                 .orElseThrow();
