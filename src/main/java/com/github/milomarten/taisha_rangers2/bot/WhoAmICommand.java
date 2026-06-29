@@ -80,7 +80,7 @@ public class WhoAmICommand extends LocalizedCommandSpec<SessionIdentityParameter
                     output.add("");
                 }
                 output.add("You are running the following campaigns:");
-                for (var in : ins) {
+                for (var in : running) {
                     var ns = findNextSession(in.getName());
                     if (ns == null) {
                         output.add(String.format("- `%s` (not scheduled)", in.getName()));
