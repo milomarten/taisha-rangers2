@@ -30,6 +30,15 @@ public class FormatUtils {
     }
 
     /**
+     * Mention a channel by its ID
+     * @param id The snowflake for that channel
+     * @return A string that represents a mention for that channel
+     */
+    public static String mentionChannel(Snowflake id) {
+        return "<#" + id.asString() + ">";
+    }
+
+    /**
      * Formats a time as a short date
      * Taking into account the user's timezones, the format displayed is:
      * [Month] [Day], [Year] at [Hour]:[Minute] [AM/PM]

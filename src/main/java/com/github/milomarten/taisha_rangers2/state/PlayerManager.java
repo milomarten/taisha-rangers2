@@ -44,6 +44,10 @@ public class PlayerManager {
                 .subscribe();
     }
 
+    public Player getPlayer(Snowflake id) {
+        return players.get(id);
+    }
+
     public Player getPlayerOrCreate(Snowflake id) {
         return players.computeIfAbsent(id, k -> new Player(id));
     }
