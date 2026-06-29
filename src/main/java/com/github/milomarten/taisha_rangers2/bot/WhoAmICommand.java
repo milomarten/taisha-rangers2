@@ -1,18 +1,14 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
-import com.github.milomarten.taisha_rangers2.command.parameters.NoParameterParser;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.*;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.Period;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
@@ -21,7 +17,7 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 @Component("whoami")
-public class WhoAmICommand extends AbstractSessionCommand<SessionIdentityParameters> {
+public class WhoAmICommand extends LocalizedCommandSpec<SessionIdentityParameters> {
     private final PlayerManager playerManager;
     private final PartyManager partyManager;
     private final NextSessionManager nextSessionManager;
@@ -39,7 +35,7 @@ public class WhoAmICommand extends AbstractSessionCommand<SessionIdentityParamet
     }
 
     @Override
-    protected CommandResponse doAction(SessionIdentityParameters params, NextSession session) {
+    protected CommandResponse doAction(SessionIdentityParameters params) {
         var output = new StringJoiner("\n");
         output.add("Hi, " + FormatUtils.pingUser(params.getUserId()) + "!");
         var player = playerManager.getPlayer(params.getUserId());
