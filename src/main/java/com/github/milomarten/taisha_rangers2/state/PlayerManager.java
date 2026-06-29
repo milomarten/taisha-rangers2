@@ -60,5 +60,6 @@ public class PlayerManager {
     public void setUsualPlayerTimezone(Snowflake id, ZoneId timezone) {
         this.players.computeIfAbsent(id, Player::new)
                 .setUsualTimezone(timezone);
+        persist();
     }
 }
