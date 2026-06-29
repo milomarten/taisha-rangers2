@@ -28,13 +28,15 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
     private final PartyManager partyManager;
     private final OutOfOfficeManager oooManager;
     private final TimingHelper timingHelper;
+    private final InitSessionMessageService initSessionMessageService;
 
-    public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager, OutOfOfficeManager oooManager, TimingHelper timingHelper) {
+    public InitializeSessionCommand(NextSessionManager manager, PartyManager partyManager, OutOfOfficeManager oooManager, TimingHelper timingHelper, InitSessionMessageService initSessionMessageService) {
         super("init");
         this.manager = manager;
         this.partyManager = partyManager;
         this.oooManager = oooManager;
         this.timingHelper = timingHelper;
+        this.initSessionMessageService = initSessionMessageService;
         setParameterParser(SessionIdentityParameters.parser(Parameters::new)
                 .withParameterField(
                         "party",
@@ -110,20 +112,8 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
             return localizationFactory.createResponse("command.init.response.success-far-off", FormatUtils.formatShortDateTime(proposedStart))
                     .ephemeral(true);
         } else {
-            return createInitResponse(session, proposedStart);
+            return initSessionMessageService.createInitResponse(session, proposedStart);
         }
-    }
-
-    public LocalizationFactory.LocalizedDynamicReplyResponse createInitResponse(NextSession session, ZonedDateTime proposedStart) {
-        var pingText = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
-        return localizationFactory.createComplexResponse((ms, locale) -> {
-            var successMsg = ms.getMessage("command.init.response.success",
-                    new Object[]{pingText, FormatUtils.formatShortDateTime(proposedStart)}, locale);
-            return new ReplyResponse(successMsg)
-                    .ephemeral(false)
-                    .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build())
-                    .component(createYesNoButtons(ms, locale));
-        });
     }
 
     private boolean isInThePast(ZonedDateTime proposedTime) {
@@ -137,14 +127,6 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
         relevant.addAll(party.getPlayerIdentities().keySet());
         whoOut.retainAll(relevant);
         return whoOut;
-    }
-
-    private ActionRow createYesNoButtons(MessageSource ms, Locale locale) {
-        return ActionRow.of(
-                Button.success("yes", ms.getMessage("command.init.buttons.yes", null, locale)),
-                Button.danger("no", ms.getMessage("command.init.buttons.no", null, locale)),
-                Button.secondary("maybe-PT24H", ms.getMessage("command.init.buttons.maybeTomorrow", null, locale))
-        );
     }
 
     @Data

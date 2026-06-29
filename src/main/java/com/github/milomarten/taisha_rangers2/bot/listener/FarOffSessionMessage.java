@@ -1,6 +1,6 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
-import com.github.milomarten.taisha_rangers2.bot.InitializeSessionCommand;
+import com.github.milomarten.taisha_rangers2.bot.InitSessionMessageService;
 import com.github.milomarten.taisha_rangers2.config.LocalizedDiscordService;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
@@ -19,7 +19,8 @@ import reactor.core.publisher.Mono;
 @ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final LocalizedDiscordService client;
-    private final InitializeSessionCommand initializeSessionCommand;
+    private final InitSessionMessageService initSessionMessageService;
+
     @Setter
     private NextSessionManager nextSessionManager;
 
@@ -52,7 +53,7 @@ public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implem
     }
 
     private void pingPlayersForUpcomingSession(NextSession session) {
-        initializeSessionCommand.createInitResponse(session, session.getProposedStartTime())
+        initSessionMessageService.createInitResponse(session, session.getProposedStartTime())
                 .resolve(session.getLocale())
                 .send(client.getGateway(), session.getChannel())
                 .onErrorResume(ex -> {
