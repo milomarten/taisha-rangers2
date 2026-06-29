@@ -19,6 +19,7 @@ public class ScarCommand extends LocalizedSubCommandSpec {
         super("scar");
         this.findPlayerService = findPlayerService;
         addPath("dot", ScarDotCommand.parser(), pullNameAndInvoke(ScarDotCommand::run));
+        addPath("initiative", ScarInitiativeCommand.parser(), pullNameAndInvoke(ScarInitiativeCommand::run));
     }
 
     private <T extends ScarIdentityParameters> Function<T, CommandResponse> pullNameAndInvoke(BiFunction<T, String, CommandResponse> func) {

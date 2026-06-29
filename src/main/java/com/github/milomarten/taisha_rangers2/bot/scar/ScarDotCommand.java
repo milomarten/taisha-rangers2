@@ -51,9 +51,9 @@ public class ScarDotCommand extends ScarCommand.ScarIdentityParameters {
                 rolls.add(String.valueOf(roll));
             }
         }
-        var string = name + " did a dot roll!";
+        var string = name + " did a dot roll!\n";
         if (!this.comment.isEmpty()) {
-            string = string + " " + comment;
+            string = string + comment + "\n";
         }
         string += this.numDice + "•d10 -> " + "\n\uD83C\uDFB2( " + String.join(", ", rolls) + ") -> **" + score + "**";
 
