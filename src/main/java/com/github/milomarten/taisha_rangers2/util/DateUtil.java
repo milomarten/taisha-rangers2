@@ -407,9 +407,6 @@ public class DateUtil {
         } else {
             parse = EnumUtils.getEnum(DayOfWeek.class, asCaps);
         }
-        if (parse == null) {
-            throw new IllegalArgumentException("Unknown DOW " + value);
-        }
         return parse;
     }
 
@@ -442,29 +439,21 @@ public class DateUtil {
     }
 
     /**
-     * Get the next ZonedDateTime after now that matches the DayOfWeek and LocalTime.
+     * Get the next LocalDate after now that matches the provided day of the week.
      * Using Now as a reference point, scroll forward until a date is found that is on the specified DayOfWeek
-     * and provided LocalTime.
-     * This method will only move forward. Thus, if now happens to be on the starting day of week and at that exact time,
+     * This method will only move forward. Thus, if now happens to be on the starting day of week,
      * it will still advance by seven days exactly.
-     * @param now The origin time
-     * @param dowItNeedsToBe The DayOfWeek the return ZonedDateTime must be
-     * @param timeItNeedsToBe The LocalTime the return ZonedDateTime must be
-     * @return The ZonedDateTime matching these criteria
+     * @param now The origin day
+     * @param dowItNeedsToBe The day of the week it needs to be
+     * @return The LocalDate matching this criteria
      */
-    public static ZonedDateTime getNextPossibleTime(ZonedDateTime now, DayOfWeek dowItNeedsToBe, LocalTime timeItNeedsToBe) {
-        if (now.getDayOfWeek() == dowItNeedsToBe && now.toLocalTime().isBefore(timeItNeedsToBe)) {
-            return now.with(timeItNeedsToBe);
-        }
-
+    public static LocalDate getNextPossibleDate(LocalDate now, DayOfWeek dowItNeedsToBe) {
         // We need to scroll forward until we hit the requested date. with() doesn't work because
         // it can go backwards sometimes.
-        int dayOffset = dowItNeedsToBe.getValue() - now.plusDays(1).getDayOfWeek().getValue();
-        if (dayOffset < 0) {
+        int dayOffset = dowItNeedsToBe.getValue() - now.getDayOfWeek().getValue();
+        if (dayOffset <= 0) {
             dayOffset += 7;
         }
-        return now
-                .plusDays(dayOffset + 1)
-                .with(timeItNeedsToBe);
+        return now.plusDays(dayOffset);
     }
 }

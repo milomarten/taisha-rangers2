@@ -3,14 +3,13 @@ package com.github.milomarten.taisha_rangers2.bot;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
-import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import com.github.milomarten.taisha_rangers2.util.SessionDateUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 @Component("set-start")
 public class FormalizeStartSessionCommand extends AbstractSessionAdminCommand<FormalizeStartSessionCommand.Parameters> {
@@ -27,8 +26,9 @@ public class FormalizeStartSessionCommand extends AbstractSessionAdminCommand<Fo
 
     @Override
     protected CommandResponse doProtectedAction(Parameters params, NextSession session) {
-        var estimatedStart = SessionDateUtil.parseDatePossibleOptions(params.getEstimatedStart(), session.getParty().getUsualTime());
-        session.setStartTime(estimatedStart);
+        var proposed = session.getProposedStartTime();
+        var estimatedStartTime = SessionDateUtil.parseTimePossibleOptions(params.estimatedStart, session.getParty().getUsualTime());
+        session.setStartTime(LocalDate.from(proposed).atTime(estimatedStartTime).atZone(proposed.getZone()));
         return localizationFactory.createResponse("command.set-start.response", FormatUtils.formatShortDateTime(session.getStartTime()));
     }
 

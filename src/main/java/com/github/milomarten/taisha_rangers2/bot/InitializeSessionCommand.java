@@ -7,7 +7,6 @@ import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
 import com.github.milomarten.taisha_rangers2.state.*;
-import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import com.github.milomarten.taisha_rangers2.util.SessionDateUtil;
 import discord4j.common.util.Snowflake;
@@ -19,7 +18,6 @@ import lombok.EqualsAndHashCode;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
-import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,9 +42,19 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
                         Parameters::setPartyName
                 )
                 .withParameterField(
+                        "proposed-start-date",
+                        StringParameter.DEFAULT_EMPTY_STRING,
+                        Parameters::setProposedStartDate
+                )
+                .withParameterField(
                         "proposed-start-time",
                         StringParameter.DEFAULT_EMPTY_STRING,
-                        Parameters::setProposedStart
+                        Parameters::setProposedStartTime
+                )
+                .withParameterField(
+                        "proposed-start-timezone",
+                        StringParameter.DEFAULT_EMPTY_STRING,
+                        Parameters::setProposedStartTimezone
                 )
         );
         setPermissions(Set.of(CommandPermission.MANAGE_CHANNELS));
@@ -70,13 +78,18 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
 
         ZonedDateTime proposedStart;
         try {
-            proposedStart =
-                    params.proposedStart.isEmpty() ?
-                            party.getUsualTime().getNextPossibleTime() :
-                            SessionDateUtil.parseDatePossibleOptions(params.proposedStart, party.getUsualTime());
-            Objects.requireNonNull(proposedStart); // solely to pop down into the catch block.
+            var timezone = SessionDateUtil.parseZoneIdPossibleOptions(params.proposedStartTimezone, party.getUsualTime());
+            var date = SessionDateUtil.parseDatePossibleOptions(params.proposedStartDate, timezone, party.getUsualTime());
+            var time = SessionDateUtil.parseTimePossibleOptions(params.proposedStartTime, party.getUsualTime());
+
+            proposedStart = date.atTime(time).atZone(timezone);
         } catch (RuntimeException e) {
             return localizationFactory.createResponse("command.init.error.unable-to-deduce-time")
+                    .ephemeral(true);
+        }
+
+        if (isInThePast(proposedStart)) {
+            return localizationFactory.createResponse("command.init.error.start-in-the-past")
                     .ephemeral(true);
         }
 
@@ -113,6 +126,11 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
         });
     }
 
+    private boolean isInThePast(ZonedDateTime proposedTime) {
+        var now = ZonedDateTime.now();
+        return proposedTime.isBefore(now);
+    }
+
     private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
         var whoOut = new ArrayList<>(oooManager.whoIsOutOn(when.toLocalDate()));
         var relevant = new HashSet<>(Set.of(party.getDm()));
@@ -133,6 +151,8 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
     @EqualsAndHashCode(callSuper = true)
     public static class Parameters extends SessionIdentityParameters {
         private String partyName;
-        private String proposedStart;
+        private String proposedStartDate;
+        private String proposedStartTime;
+        private String proposedStartTimezone;
     }
 }

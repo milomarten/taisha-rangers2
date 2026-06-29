@@ -183,4 +183,22 @@ class DateUtilTest {
         );
         assertEquals("déc. 05", str);
     }
+
+    @Test
+    public void getNextPossibleDate_NormalCase() {
+        var today = LocalDate.of(2026, 6, 29);
+
+        var next = DateUtil.getNextPossibleDate(today, DayOfWeek.WEDNESDAY);
+
+        assertEquals(LocalDate.of(2026, 7, 1), next);
+    }
+
+    @Test
+    public void getNextPossibleDate_DegenerateCase() {
+        var today = LocalDate.of(2026, 6, 29);
+
+        var next = DateUtil.getNextPossibleDate(today, DayOfWeek.MONDAY);
+
+        assertEquals(LocalDate.of(2026, 7, 6), next);
+    }
 }
