@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.command.localization;
 
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.command.response.ReplyResponse;
+import com.github.milomarten.taisha_rangers2.config.LocalizedDiscordService;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
@@ -119,6 +120,10 @@ public class LocalizationFactory implements Localizer {
         public Mono<?> respond(DeferrableInteractionEvent event) {
             return func.apply(this.messageSource, DiscordLocales.fromDiscord(event.getInteraction().getUserLocale()))
                     .respond(event);
+        }
+
+        public ReplyResponse resolve(Locale locale) {
+            return func.apply(this.messageSource, locale);
         }
     }
 }

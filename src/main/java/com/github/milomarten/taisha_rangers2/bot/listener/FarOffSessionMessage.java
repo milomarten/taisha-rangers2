@@ -1,16 +1,17 @@
 package com.github.milomarten.taisha_rangers2.bot.listener;
 
+import com.github.milomarten.taisha_rangers2.bot.InitializeSessionCommand;
 import com.github.milomarten.taisha_rangers2.config.LocalizedDiscordService;
 import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.NextSessionListener;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
-import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import discord4j.common.util.Snowflake;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @Component
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnBooleanProperty(prefix = "reminder", value = "enabled")
 public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implements NextSessionListener {
     private final LocalizedDiscordService client;
+    private final InitializeSessionCommand initializeSessionCommand;
     @Setter
     private NextSessionManager nextSessionManager;
 
@@ -50,13 +52,13 @@ public class FarOffSessionMessage extends BaseSessionScheduler<Snowflake> implem
     }
 
     private void pingPlayersForUpcomingSession(NextSession session) {
-        client.sendLocalizedMessage(
-                session.getChannel(),
-                session.getLocale(),
-                LocalizedDiscordService.withAllowedRoleMention(session.getPing()),
-                "job.far-off-session",
-                session.getPing() != null ? FormatUtils.pingRole(session.getPing()) : "everyone",
-                FormatUtils.formatShortDateTime(session.getProposedStartTime())
-        ).subscribe();
+        initializeSessionCommand.createInitResponse(session, session.getProposedStartTime())
+                .resolve(session.getLocale())
+                .send(client.getGateway(), session.getChannel())
+                .onErrorResume(ex -> {
+                    log.error("Error sending init. Eating message", ex);
+                    return Mono.empty();
+                })
+                .subscribe();
     }
 }

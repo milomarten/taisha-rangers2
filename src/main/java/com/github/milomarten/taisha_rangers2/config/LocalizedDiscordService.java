@@ -5,6 +5,7 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateMono;
 import discord4j.rest.util.AllowedMentions;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.MessageSource;
@@ -20,7 +21,7 @@ import java.util.function.UnaryOperator;
 @ConditionalOnBean(GatewayDiscordClient.class)
 public class LocalizedDiscordService {
     private final MessageSource messageSource;
-    private final GatewayDiscordClient gateway;
+    @Getter private final GatewayDiscordClient gateway;
 
     public Mono<Void> sendLocalizedMessage(Snowflake channelId, Locale locale, String key, Object... params) {
         return sendLocalizedMessage(channelId, locale, UnaryOperator.identity(), key, params);

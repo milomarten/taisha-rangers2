@@ -1,9 +1,12 @@
 package com.github.milomarten.taisha_rangers2.command.response;
 
+import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import discord4j.core.object.component.TopLevelMessageComponent;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.discordjson.possible.Possible;
 import discord4j.rest.util.AllowedMentions;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,15 @@ public class ReplyResponse implements CommandResponse {
                 .withEphemeral(ephemeral)
                 .withAllowedMentions(Possible.ofNullable(allowedMentions))
                 .withComponents(components.isEmpty() ? Possible.absent() : Possible.of(components));
+    }
+
+    public Mono<?> send(GatewayDiscordClient client, Snowflake place) {
+        return client.getChannelById(place)
+                .cast(TextChannel.class)
+                .flatMap(tc -> tc.createMessage(message)
+                        .withAllowedMentions(Possible.ofNullable(allowedMentions))
+                        .withComponents(components.isEmpty() ? Possible.absent() : Possible.of(components))
+                );
     }
 
     protected String getMessage(DeferrableInteractionEvent event) {

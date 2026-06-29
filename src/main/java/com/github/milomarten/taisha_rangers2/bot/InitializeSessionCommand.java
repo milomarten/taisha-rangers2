@@ -1,6 +1,7 @@
 package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.taisha_rangers2.command.CommandPermission;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
@@ -96,16 +97,20 @@ public class InitializeSessionCommand extends LocalizedCommandSpec<InitializeSes
             return localizationFactory.createResponse("command.init.response.success-far-off", FormatUtils.formatShortDateTime(proposedStart))
                     .ephemeral(true);
         } else {
-            var pingText = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
-            return localizationFactory.createComplexResponse((ms, locale) -> {
-                var successMsg = ms.getMessage("command.init.response.success",
-                        new Object[]{pingText,  FormatUtils.formatShortDateTime(proposedStart)}, locale);
-                return new ReplyResponse(successMsg)
-                        .ephemeral(false)
-                        .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build())
-                        .component(createYesNoButtons(ms, locale));
-            });
+            return createInitResponse(session, proposedStart);
         }
+    }
+
+    public LocalizationFactory.LocalizedDynamicReplyResponse createInitResponse(NextSession session, ZonedDateTime proposedStart) {
+        var pingText = session.getPing() == null ? "everyone" : FormatUtils.pingRole(session.getPing());
+        return localizationFactory.createComplexResponse((ms, locale) -> {
+            var successMsg = ms.getMessage("command.init.response.success",
+                    new Object[]{pingText, FormatUtils.formatShortDateTime(proposedStart)}, locale);
+            return new ReplyResponse(successMsg)
+                    .ephemeral(false)
+                    .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build())
+                    .component(createYesNoButtons(ms, locale));
+        });
     }
 
     private List<Snowflake> checkOOOs(Party party, ZonedDateTime when) {
