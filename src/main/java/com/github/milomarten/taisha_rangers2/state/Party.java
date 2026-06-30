@@ -14,6 +14,7 @@ public class Party {
     private Snowflake ping;
     private PartyTime usualTime;
     private Locale locale;
+    private Set<Snowflake> relevantChannels;
 
     @JsonSetter
     public void setPlayers(Set<Snowflake> players) {

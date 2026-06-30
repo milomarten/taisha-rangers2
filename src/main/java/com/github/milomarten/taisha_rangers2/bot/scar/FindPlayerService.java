@@ -38,16 +38,26 @@ public class FindPlayerService {
 
         var matching = partyManager.getParties().stream()
                 .<PlayerContext>mapMulti((party, cons) -> {
-                    if (party.getPlayerIdentities().containsKey(user)) {
-                        cons.accept(new PlayerContext(user, party.getPlayerIdentities().get(user), party));
-                    } else if (Objects.equals(party.getDm(), user)) {
-                        cons.accept(new PlayerContext(user, STORYTELLER, party));
+                    if (party.getRelevantChannels() == null || party.getRelevantChannels().contains(channel)) {
+                        if (party.getPlayerIdentities().containsKey(user)) {
+                            cons.accept(new PlayerContext(user, party.getPlayerIdentities().get(user), party));
+                        } else if (Objects.equals(party.getDm(), user)) {
+                            cons.accept(new PlayerContext(user, STORYTELLER, party));
+                        }
                     }
                 }).toList();
 
         // Check all existing parties. If only one matches, that's them!
         if (matching.size() == 1) {
             return Optional.of(matching.getFirst());
+        } else if (matching.size() > 1) {
+            // If only one of these parties has specific channels, those have precedence over generic.
+            var specificOne = matching.stream()
+                    .filter(pc -> pc.party.getRelevantChannels() != null)
+                    .toList();
+            if (specificOne.size() == 1) {
+                return Optional.of(specificOne.getFirst());
+            }
         }
 
         // If multiple match, find the one currently in session!
