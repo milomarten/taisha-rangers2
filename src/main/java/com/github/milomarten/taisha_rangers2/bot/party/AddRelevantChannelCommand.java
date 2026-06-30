@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+
 @Component("add-relevant-channel")
 public class AddRelevantChannelCommand extends AbstractPartyAdminCommand<AddRelevantChannelCommand.Params> {
     public AddRelevantChannelCommand() {
@@ -26,6 +28,9 @@ public class AddRelevantChannelCommand extends AbstractPartyAdminCommand<AddRele
 
     @Override
     protected CommandResponse doProtectedPartyAction(Party party, Params params) {
+        if (party.getRelevantChannels() == null) {
+            party.setRelevantChannels(new HashSet<>());
+        }
         var worked = party.getRelevantChannels().add(params.channel);
         var ping = FormatUtils.mentionChannel(params.channel);
         if (worked) {
