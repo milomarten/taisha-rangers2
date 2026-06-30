@@ -22,7 +22,7 @@ public class ScarInitiativeCommand extends ScarCommand.ScarIdentityParameters {
                 .withParameterField("initiative", IntParameter.builder().minValue(0).build(), ScarInitiativeCommand::setInitiative);
     }
 
-    public CommandResponse run(String name) {
+    public CommandResponse run(FindPlayerService.PlayerContext playerContext) {
         List<String> rolls = new ArrayList<>();
         int score = 0;
         var rollsLeft = this.initiative + 1;
@@ -32,7 +32,7 @@ public class ScarInitiativeCommand extends ScarCommand.ScarIdentityParameters {
             rolls.add(String.valueOf(roll));
             score += roll;
         }
-        var string = name + " rolled initiative!\n";
+        var string = playerContext.identity().getName() + " rolled initiative!\n";
         string += "  -> " + "\n\uD83C\uDFB2( " + String.join(", ", rolls) + ") -> **" + score + "**";
 
         return CommandResponse.reply(string, false);
