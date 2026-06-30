@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +105,8 @@ public class ScarDotCommand extends ScarCommand.ScarIdentityParameters {
                         var storytellerDm = event.getClient()
                                 .getUserById(context.party().getDm())
                                 .flatMap(User::getPrivateChannel)
-                                .flatMap(pc -> pc.createMessage(message));
+                                .flatMap(pc -> pc.createMessage(message))
+                                .onErrorResume(ex -> Mono.empty());
 
                         var playerEphemeral = CommandResponse.reply(message, true)
                                 .respond(event);
