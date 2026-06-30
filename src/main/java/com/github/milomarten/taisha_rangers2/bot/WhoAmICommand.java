@@ -22,14 +22,11 @@ public class WhoAmICommand extends LocalizedCommandSpec<SessionIdentityParameter
     private final PartyManager partyManager;
     private final NextSessionManager nextSessionManager;
 
-    private final LocalizationFactory localizationFactory;
-
-    public WhoAmICommand(PlayerManager playerManager, PartyManager partyManager, NextSessionManager nextSessionManager, LocalizationFactory localizationFactory) {
+    public WhoAmICommand(PlayerManager playerManager, PartyManager partyManager, NextSessionManager nextSessionManager) {
         super("whoami");
         this.playerManager = playerManager;
         this.partyManager = partyManager;
         this.nextSessionManager = nextSessionManager;
-        this.localizationFactory = localizationFactory;
 
         setParameterParser(SessionIdentityParameters.parser());
     }
