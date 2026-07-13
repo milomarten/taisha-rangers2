@@ -17,8 +17,14 @@ public class NextSession {
     private final Snowflake channel;
     private final Party party;
     private final Map<Snowflake, PlayerResponse> playerResponses = new HashMap<>();
-    private final ZonedDateTime proposedStartTime;
+    private ZonedDateTime proposedStartTime;
     private ZonedDateTime startTime;
+
+    public NextSession(Snowflake channel, Party party, ZonedDateTime proposedStartTime) {
+        this.channel = channel;
+        this.party = party;
+        this.proposedStartTime = proposedStartTime;
+    }
 
     // Adaptions from the old way
     public Snowflake getPing() { return party.getPing(); }

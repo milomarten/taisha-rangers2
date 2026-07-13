@@ -31,7 +31,7 @@ public class SessionDateUtil {
             if (dow != null) {
                 return DateUtil.getNextPossibleDate(LocalDate.now(clock), dow);
             } else {
-                return DateUtil.parseCasualDate(value);
+                return DateUtil.parseCasualDate(value, clock);
             }
         }
     }
