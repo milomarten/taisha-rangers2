@@ -4,6 +4,7 @@ import com.github.milomarten.taisha_rangers2.command.CommandPermission;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
+import com.github.milomarten.taisha_rangers2.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -22,9 +23,10 @@ public class CancelSessionCommand extends LocalizedCommandSpec<SessionIdentityPa
 
     @Override
     public CommandResponse doAction(SessionIdentityParameters params) {
-        var worked = manager.cancelSession(params);
-        if (worked) {
-            return localizationFactory.createResponse("command.cancel.response")
+        var session = manager.getNextSession(params.getChannelId());
+        if (session.isPresent()) {
+            manager.cancelSession(params);
+            return localizationFactory.createResponse("command.cancel.response", FormatUtils.pingRole(session.get().getPing()))
                     .ephemeral(false);
         } else {
             return localizationFactory.createResponse("errors.session.no-match")
