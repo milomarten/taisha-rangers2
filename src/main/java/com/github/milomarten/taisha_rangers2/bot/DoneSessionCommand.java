@@ -21,7 +21,6 @@ public class DoneSessionCommand extends LocalizedCommandSpec<DoneSessionCommand.
         this.manager = manager;
 
         setParameterParser(SessionIdentityParameters.parser(Parameters::new)
-                .withParameterField("exp", IntParameter.REQUIRED, Parameters::setExp)
                 .withParameterField("other", StringParameter.DEFAULT_EMPTY_STRING, Parameters::setOtherStuff)
         );
         setPermissions(Set.of(CommandPermission.MANAGE_CHANNELS));
@@ -32,10 +31,10 @@ public class DoneSessionCommand extends LocalizedCommandSpec<DoneSessionCommand.
         var worked = manager.cancelSession(params);
         if (worked) {
             if (params.getOtherStuff().isEmpty()) {
-                return localizationFactory.createResponse("command.done.response.exp-only", params.exp)
+                return localizationFactory.createResponse("command.done.response.no-stuff")
                         .ephemeral(false);
             } else {
-                return localizationFactory.createResponse("command.done.response.exp-and-other", params.exp, params.otherStuff)
+                return localizationFactory.createResponse("command.done.response.with-stuff", params.otherStuff)
                         .ephemeral(false);
             }
         } else {
@@ -47,7 +46,6 @@ public class DoneSessionCommand extends LocalizedCommandSpec<DoneSessionCommand.
     @Getter
     @Setter
     public static class Parameters extends SessionIdentityParameters {
-        private int exp;
         private String otherStuff;
     }
 }

@@ -5,6 +5,8 @@ import com.github.milomarten.taisha_rangers2.command.parameters.PojoParameterPar
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.state.PlayerIdentity;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.interaction.InteractionCreateEvent;
+import discord4j.core.object.entity.User;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +18,12 @@ import java.util.function.Supplier;
 public class ScarCommand extends LocalizedSubCommandSpec {
     private final FindPlayerService findPlayerService;
 
-    public ScarCommand(FindPlayerService findPlayerService) {
+    public ScarCommand(FindPlayerService findPlayerService, ScarDoneCommand scarDoneCommand) {
         super("scar");
         this.findPlayerService = findPlayerService;
         addPath("dot", ScarDotCommand.parser(), pullNameAndInvoke(ScarDotCommand::run));
         addPath("initiative", ScarInitiativeCommand.parser(), pullNameAndInvoke(ScarInitiativeCommand::run));
+        addPath("done", ScarDoneCommand.parser(), scarDoneCommand::run);
     }
 
     private <T extends ScarIdentityParameters> Function<T, CommandResponse> pullNameAndInvoke(BiFunction<T, FindPlayerService.PlayerContext, CommandResponse> func) {
@@ -33,15 +36,19 @@ public class ScarCommand extends LocalizedSubCommandSpec {
 
     @Data
     static class ScarIdentityParameters {
-        private Snowflake userId;
+        private User user;
         private String userName;
         private Snowflake channelId;
 
         public static <T extends ScarIdentityParameters> PojoParameterParser<T> parser(Supplier<T> constructor) {
             return new PojoParameterParser<>(constructor)
-                    .withParameterField(PojoParameterParser.userId(), T::setUserId)
+                    .withParameterField(InteractionCreateEvent::getUser, T::setUser)
                     .withParameterField(PojoParameterParser.username(), T::setUserName)
                     .withParameterField(PojoParameterParser.channelId(), T::setChannelId);
+        }
+
+        public Snowflake getUserId() {
+            return user.getId();
         }
     }
 }

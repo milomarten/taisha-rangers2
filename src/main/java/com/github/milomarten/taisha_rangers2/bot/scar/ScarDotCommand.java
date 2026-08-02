@@ -8,8 +8,6 @@ import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import discord4j.core.object.entity.User;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
