@@ -1,8 +1,10 @@
 package com.github.milomarten.taisha_rangers2.charactersheet.scar;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.milomarten.taisha_rangers2.bot.scar.FindPlayerService;
 import com.github.milomarten.taisha_rangers2.charactersheet.CharacterSheetHandler;
 import com.github.milomarten.taisha_rangers2.persistence.Persister;
+import com.github.milomarten.taisha_rangers2.state.PlayerIdentity;
 import com.google.api.services.sheets.v4.Sheets;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,10 @@ public class ScarCharacterSheetHandler implements CharacterSheetHandler<ScarChar
         return inMemory.getOrDefault(id, null);
     }
 
+    public ScarCharacterSheet getCharacterSheet(FindPlayerService.PlayerContext context) {
+        return getCharacterSheet(context.party().getName() + ":" + context.user().asString());
+    }
+
     @Override
     public void addCharacterSheet(String id, ScarCharacterSheet sheet) {
         switch (sheet) {
@@ -52,6 +58,13 @@ public class ScarCharacterSheetHandler implements CharacterSheetHandler<ScarChar
             case InMemoryCharacterSheet imcs -> inMemory.put(id, imcs);
         }
         persist();
+    }
+
+    public void addCharacterSheet(FindPlayerService.PlayerContext context, ScarCharacterSheet sheet) {
+        addCharacterSheet(
+                context.party().getName() + ":" + context.user().asString(),
+                sheet
+        );
     }
 
     private void persist() {
