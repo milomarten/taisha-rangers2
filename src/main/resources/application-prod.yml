@@ -4,3 +4,6 @@ persistence:
 
 reminder:
   enabled: true
+
+sheets:
+  credentials: credentials.json

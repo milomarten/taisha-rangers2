@@ -14,3 +14,6 @@ reminder:
   session-start-reminder-offset: -15m # ping all players that session is about to start at this offset from the start time
   done-reminder-offset: 16h # ping the GM at this offset from the start time to use /done
   start-time-calculation-fake-offset: 2s # Wait this amount of time before firing off the start time calculation message
+
+sheets:
+  credentials: src/main/resources/credentials.json
