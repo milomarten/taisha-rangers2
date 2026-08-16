@@ -2,6 +2,7 @@ package com.github.milomarten.taisha_rangers2.charactersheet.scar;
 
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -10,11 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class SheetsBackedCharacterSheet implements ScarCharacterSheet {
+public final class SheetsBackedCharacterSheet implements ScarCharacterSheet {
     private static final String RANGE_PREFIX = "'Stat Sheet!'";
 
     private final Sheets sheets;
-    private final String spreadsheetId;
+    @Getter private final String spreadsheetId;
 
     private static String range(String startColumn, int startRow, String endColumn, int endRow) {
         return RANGE_PREFIX + startColumn + startRow + ":" + endColumn + endRow;

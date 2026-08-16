@@ -24,7 +24,11 @@ public class SheetsConfig {
     public static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
     @Bean
-    public Sheets sheets(@Value("${sheets.credentials}") String credentialsPath) throws IOException, GeneralSecurityException {
+    public Sheets sheets(
+            @Value("${sheets.credentials}") String credentialsPath,
+            @Value("${sheets.redirect.host:localhost}") String redirectHost,
+            @Value("${sheets.redirect.port:8080}") int redirectPort
+    ) throws IOException, GeneralSecurityException {
         GoogleClientSecrets clientSecrets;
 
         try (InputStream in = new FileInputStream(credentialsPath)) {
@@ -44,7 +48,10 @@ public class SheetsConfig {
                 .setAccessType("offline")
                 .build();
 
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8080).build();
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder()
+                .setHost(redirectHost)
+                .setPort(redirectPort)
+                .build();
 
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver, JustPrintUrl.INSTANCE).authorize("user");
 

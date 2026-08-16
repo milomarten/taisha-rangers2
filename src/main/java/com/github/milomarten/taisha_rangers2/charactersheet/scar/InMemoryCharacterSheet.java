@@ -7,7 +7,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 @Builder
-public class InMemoryCharacterSheet implements ScarCharacterSheet {
+public final class InMemoryCharacterSheet implements ScarCharacterSheet {
     private static final Value DEFAULT_ONE = new Value(1, 0);
     private static final Value DEFAULT_ZERO = new Value(0, 0);
 

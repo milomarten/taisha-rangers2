@@ -2,7 +2,7 @@ package com.github.milomarten.taisha_rangers2.charactersheet.scar;
 
 import java.util.Map;
 
-public interface ScarCharacterSheet {
+public sealed interface ScarCharacterSheet permits InMemoryCharacterSheet, SheetsBackedCharacterSheet {
     Map<Attribute, Value> getAttributes();
     Map<Expertise, Value> getExpertises();
     Map<Skill, Value> getSkills();

@@ -7,3 +7,6 @@ reminder:
 
 sheets:
   credentials: credentials.json
+  redirect:
+    host: google.dook.zone
+    port: 8008
