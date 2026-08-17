@@ -8,6 +8,7 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -15,7 +16,7 @@ import reactor.core.publisher.Mono;
 public class RemovePlayerCommand extends AbstractPartyAdminCommand<RemovePlayerCommand.Parameters> {
     private final GatewayDiscordClient gdc;
 
-    public RemovePlayerCommand(GatewayDiscordClient gdc) {
+    public RemovePlayerCommand(@Autowired(required = false) GatewayDiscordClient gdc) {
         super("remove-player");
         this.gdc = gdc;
         setParameterParser(
@@ -62,7 +63,7 @@ public class RemovePlayerCommand extends AbstractPartyAdminCommand<RemovePlayerC
     }
 
     private void deAssignRole(String partyName, Snowflake guildId, Snowflake userId, Snowflake oldRoleId, Snowflake alumniRoleMaybe) {
-        if (guildId != null && (oldRoleId != null || alumniRoleMaybe != null)) {
+        if (gdc != null && guildId != null && (oldRoleId != null || alumniRoleMaybe != null)) {
             gdc.getMemberById(guildId, userId)
                     .flatMap(m -> {
                         Mono<Void> deleteRole, newRole;

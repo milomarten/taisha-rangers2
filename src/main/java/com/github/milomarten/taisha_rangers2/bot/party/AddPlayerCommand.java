@@ -11,13 +11,14 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component("add-player")
 public class AddPlayerCommand extends AbstractPartyAdminCommand<AddPlayerCommand.Parameters> {
     private final GatewayDiscordClient gdc;
 
-    public AddPlayerCommand(GatewayDiscordClient gdc) {
+    public AddPlayerCommand(@Autowired(required = false) GatewayDiscordClient gdc) {
         super("add-player");
         this.gdc = gdc;
 
@@ -63,7 +64,7 @@ public class AddPlayerCommand extends AbstractPartyAdminCommand<AddPlayerCommand
     }
 
     private void assignRole(String partyName, Snowflake guildId, Snowflake userId, Snowflake roleId) {
-        if (roleId != null && guildId != null) {
+        if (gdc != null && roleId != null && guildId != null) {
             gdc.getMemberById(guildId, userId)
                     .flatMap(m -> m.addRole(roleId, "Joined " + partyName))
                     .subscribe();
