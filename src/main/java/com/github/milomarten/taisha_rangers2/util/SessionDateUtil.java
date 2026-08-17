@@ -23,7 +23,7 @@ public class SessionDateUtil {
     }
 
     // For testing purposes. Allows a mock clock to be used
-    public static LocalDate parseDatePossibleOptions(String value, PartyTime partyTime, Clock clock) {
+    static LocalDate parseDatePossibleOptions(String value, PartyTime partyTime, Clock clock) {
         if (value.isEmpty()) {
             return DateUtil.getNextPossibleDate(LocalDate.now(clock), partyTime.getDayOfWeek());
         } else {
@@ -31,7 +31,7 @@ public class SessionDateUtil {
             if (dow != null) {
                 return DateUtil.getNextPossibleDate(LocalDate.now(clock), dow);
             } else {
-                return DateUtil.parseCasualDate(value, clock);
+                return DateUtil.parseCasualDate(value, clock, DateFormat.DMY);
             }
         }
     }

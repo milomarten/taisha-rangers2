@@ -69,12 +69,12 @@ public class DateUtil {
 
     /**
      * Casually parse a time
-     * Whitespace and colons are removed. Of the remaining value:
-     * - If ends in PM or P (case-insensitive), the time is converted to PM (possible hours are 1-12)
-     * - If ends in AM or A (case-insensitive), the time is assumed as AM (possible hours are 1-12)
+     * Whitespace and colons are ignored. Of the remaining value:
+     * - If ends in PM or P (case-insensitive), the time is converted to PM (possible hours are 1-12, mapping to 12-23)
+     * - If ends in AM or A (case-insensitive), the time is assumed as AM (possible hours are 1-12, mapping to 0-11)
      * - If neither are present, the time is assumed as 24 hour time (possible hours are 0-23)
      * Once the suffix is removed, the remaining value is parsed thusly:
-     * - If 1 or 2 digits are present, it is assumed to be the hour, and minutes are 00.
+     * - If 1 or 2 digits are present, it is assumed to be the hour, and minutes are 00. AM/PM markers are required.
      * - If 3 digits are present, the first digit is assumed to be the hour, and the last two are the minutes.
      * - If 4 digits are present, the first two digits are assumed to be the hour, and the last two are the minutes.
      * - Any other number of digits throw an exception.
@@ -102,6 +102,9 @@ public class DateUtil {
         if (TIME_PATTERN.matcher(value).hasMatch()) {
             int hour, minute;
             if (value.length() <= 2) {
+                if (timeType == TimeType.TWENTY_FOUR_HOUR_TIME) {
+                    throw new DateTimeException("1- or 2-digit time requires AM/PM");
+                }
                 hour = timeType.normalizeHour(Integer.parseInt(value));
                 minute = 0;
             } else if (value.length() == 3) {
@@ -146,10 +149,10 @@ public class DateUtil {
     /**
      * Parse a timezone-less date casually
      * The value is split up to 3 times on any non-numerical values, and the results are parsed as so:
-     * - If 2 groups are present (i.e. 3/14), the year is deduced as best as possibly can. The current year will be used,
-     * unless that would result in a date in the past, whereupon next year is used instead.
+     * - If 2 groups are present (i.e. 3/14), the current year will be used, unless that would result in a date
+     * in the past, whereupon next year is used instead.
      * - If 3 groups are present and the last group is 2 digits (i.e 3/14/26), the year is assumed to be relative
-     * to 2000 (in this example, 26 becomes 2026).
+     * to 2000 (in this example, 26 becomes 2026). Any years not within 1 year of the current year will throw an exception.
      * - If 3 groups are present and the last group is more than 2 digits (i.e. 3/14/2026), the year is read as-is.
      * Any years not within 1 year of the current year will throw an exception.
      * Note that the expected format is American-style (Month, Day, Year). Sorry World, I can't support them all
@@ -158,20 +161,12 @@ public class DateUtil {
      * @return The parsed date
      */
     public static LocalDate parseCasualDate(String value) {
-        return parseCasualDate(value, Clock.systemDefaultZone());
+        return parseCasualDate(value, Clock.systemDefaultZone(), DateFormat.MDY);
     }
 
     private static final Pattern NON_DIGITS = Pattern.compile("\\D+");
 
-    /**
-     * Parse a timezone-less date casually, using a provided clock for computations
-     * The same as parseCasualDate(value), but the provided Clock will be used when computing
-     * omitted years. This is intended for testing, to keep values static.
-     * @param value The value to parse
-     * @param clock The clock to use to compute the present
-     * @return The parsed date
-     */
-    public static LocalDate parseCasualDate(String value, Clock clock) {
+    static LocalDate parseCasualDate(String value, Clock clock, DateFormat dateFormat) {
         if (value.isEmpty()) {
             return null;
         }
@@ -182,8 +177,8 @@ public class DateUtil {
         if (elements.length == 2) {
             LocalDate now =  LocalDate.now(clock);
 
-            month = Integer.parseInt(elements[0]);
-            day = Integer.parseInt(elements[1]);
+            month = Integer.parseInt(elements[dateFormat.getMonthIndex(true)]);
+            day = Integer.parseInt(elements[dateFormat.getDayIndex(true)]);
             year = now.getYear();
             var requestedMD = MonthDay.of(month, day);
             var nowMD = MonthDay.from(now);
@@ -191,14 +186,16 @@ public class DateUtil {
                 year += 1;
             }
         } else if (elements.length == 3) {
-            year = Integer.parseInt(elements[0]);
-            month = Integer.parseInt(elements[1]);
-            day = Integer.parseInt(elements[2]);
+            year = Integer.parseInt(elements[dateFormat.getYearIndex()]);
+            month = Integer.parseInt(elements[dateFormat.getMonthIndex(false)]);
+            day = Integer.parseInt(elements[dateFormat.getDayIndex(false)]);
 
-            var currentYear = Year.now(clock);
             if (year < 100) {
                 year += 2000;
-            } else if (year < currentYear.getValue() - 1 || year > currentYear.getValue() + 1) {
+            }
+
+            var currentYear = Year.now(clock);
+            if (year < currentYear.getValue() - 1 || year > currentYear.getValue() + 1) {
                 throw new DateTimeException("Year should be two digits, or more than 1 year away");
             }
         } else {
