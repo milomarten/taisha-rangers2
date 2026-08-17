@@ -1,153 +1,59 @@
 package com.github.milomarten.taisha_rangers2.util;
 
-import com.github.milomarten.taisha_rangers2.state.PartyTime;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 
 import java.math.BigInteger;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 /**
- * Various utilities for handling dates via commands
+ * Various utilities for handling dates via commands.
+ * Most of these methods are "casual" parsing, which supports a number of different human-friendly
+ * parsing strategies. All supported formats are described in each method.
  */
 public class DateUtil {
-    @Deprecated private static final ZoneId CENTRAL_TIME = ZoneId.of("America/Chicago");
-    @Deprecated private static final LocalTime DEFAULT_TIME = LocalTime.of(18, 0);
-
     private static final Map<String, ZoneId> OVERRIDES = new HashMap<>();
     static {
+        OVERRIDES.put("NT", ZoneId.of("America/St_Johns"));
+        OVERRIDES.put("AT", ZoneId.of("America/Halifax"));
         OVERRIDES.put("ET", ZoneId.of("America/New_York"));
         OVERRIDES.put("CT", ZoneId.of("America/Chicago"));
         OVERRIDES.put("MT", ZoneId.of("America/Denver"));
         OVERRIDES.put("PT", ZoneId.of("America/Los_Angeles"));
+        OVERRIDES.put("AKT", ZoneId.of("America/Anchorage"));
+        OVERRIDES.put("HT", ZoneId.of("Pacific/Honolulu"));
+        OVERRIDES.put("NST", ZoneId.of("America/St_Johns"));
+        OVERRIDES.put("AST", ZoneId.of("America/Halifax"));
         OVERRIDES.put("EST", ZoneId.of("America/New_York"));
         OVERRIDES.put("CST", ZoneId.of("America/Chicago"));
         OVERRIDES.put("MST", ZoneId.of("America/Denver"));
         OVERRIDES.put("PST", ZoneId.of("America/Los_Angeles"));
+        OVERRIDES.put("AKST", ZoneId.of("America/Anchorage"));
+        OVERRIDES.put("HST", ZoneId.of("Pacific/Honolulu"));
+        OVERRIDES.put("NDT", ZoneId.of("America/St_Johns"));
+        OVERRIDES.put("ADT", ZoneId.of("America/Halifax"));
         OVERRIDES.put("EDT", ZoneId.of("America/New_York"));
         OVERRIDES.put("CDT", ZoneId.of("America/Chicago"));
         OVERRIDES.put("MDT", ZoneId.of("America/Denver"));
         OVERRIDES.put("PDT", ZoneId.of("America/Los_Angeles"));
-    }
-
-    /**
-     * Parse a date time from a number of permissible formats:
-     * - YYYY-MM-DD -> Assumes the party's standard time and timezone
-     * - MM-DD -> Assumes the party's standard time and timezone, and the year that yields the soonest future date. Examples:
-     *  - Input: 08-15, Today: 2025-08-01 -> Year is 2025 (since Aug 15th is after August 1st)
-     *  - Input: 01-02, Today: 2025-12-25 -> Year is 2026 (since Jan 2nd is before December 25th, when not taking years into account)
-     * - YYYY-MM-DD HH:MM -> YYYY-MM-DDTHH:MM:00, using the party's standard timezone.
-     * - YYYY-MM-DD HH:MM:SS -> YYYY-MM-DDTHH:MM:SS, using the party's standard timezone.
-     * - YYYY-MM-DD HH:MM,CST -> YYYY-MM-DDTHH:MM:00, using the timezone provided after the comma. This can be anything parsed by parseCasualTimezone()
-     * - 2025-08-13T08:00-05:00 -> Fully formed date and time, no changes
-     * - 2025-08-13T08:00-05:00[America/Chicago] -> Fully formed date and time, no changes
-     * If the usual time is not provided, and a format requires it, a NPE is thrown.
-     * @param value The string to parse
-     * @return The parsed ZonedDateTime
-     */
-    public static ZonedDateTime parseCasualDateTime(String value, PartyTime usual) {
-        return parseCasualDateTime(
-                value,
-                () -> Clock.system(usual.getTimezone()),
-                usual::getTimeOfDay);
-    }
-
-    /**
-     * Legacy parseCasualDateTime
-     * Uses a default timezone of America/Chicago, and a default starting time of 6pm.
-     * This should only be used in tests, and will be deprecated.
-     * @param value The value to parse
-     * @return The parsed ZonedDateTime
-     */
-    public static ZonedDateTime parseCasualDateTime(String value) {
-        return parseCasualDateTime(value,
-                () -> Clock.system(CENTRAL_TIME),
-                () -> DEFAULT_TIME);
-    }
-
-    /**
-     * Testing parseCasualDateTime
-     * Used in test classes, to control contextual year tests. The default time of 6pm is used.
-     * This should only be used in tests, and will be deprecated
-     * @param value The value to parse
-     * @param clock A clock which will be used in computation
-     * @return The parsed ZonedDateTime
-     */
-    public static ZonedDateTime parseCasualDateTime(String value, Clock clock) {
-        return parseCasualDateTime(value, () -> clock, () -> DEFAULT_TIME);
-    }
-
-    /**
-     * parseCasualDateTime with possibly-necessary context.
-     * A number of different formats are supported. In some of those formats, extra context is required, but in
-     * others, it is unnecessary. The usage of Suppliers is to encourage that the parameters are created lazily. If
-     * they do not exist, a NPE is thrown, which can be handled by the calling services.
-     * timeFunc is used to get the default time, for formats that omit the time.
-     * clockFunc is used to get the timezone, as well as for implicit year computation.
-     * @param value The value to parse
-     * @param clockFunc A supplier which will lazily create a clock if necessary.
-     * @return The parsed ZonedDateTime
-     */
-    public static ZonedDateTime parseCasualDateTime(String value, Supplier<Clock> clockFunc, Supplier<LocalTime> timeFunc) {
-        if (value.isEmpty()) {
-            return null;
-        } else if (value.length() == 10) {
-            // 2025-08-13. Uses the clockFunc and timeFunc to determine the relevant timezone and time.
-            return LocalDate.parse(value)
-                    .atTime(timeFunc.get())
-                    .atZone(clockFunc.get().getZone());
-        } else if (value.length() == 5) {
-            // 08-13. Uses the clockFunc and timeFunc to determine the relevant year, timezone, and time.
-            var md = MonthDay.parse("--" + value);
-            var today = LocalDate.now(clockFunc.get());
-            int yearOffset = 0;
-            if (MonthDay.from(today).isAfter(md)) {
-                yearOffset = 1;
-            }
-            return md.atYear(Year.from(today).getValue() + yearOffset)
-                    .atTime(timeFunc.get())
-                    .atZone(clockFunc.get().getZone());
-        } else if (value.contains(",")) {
-            // More simple way of specifying a time and a timezone together.
-            // 2025-08-13 08:00:00,America/Chicago. Seconds is optional
-            String[] tokens = value.split(",", 2);
-            if (tokens[0].length() == 16) {
-                tokens[0] = tokens[0] + ":00";
-            }
-            var timezone = parseCasualTimezone(tokens[1]);
-            return LocalDateTime.parse(tokens[0].replace(' ', 'T'))
-                    .atZone(timezone);
-        } else if (value.length() == 19 || value.length() == 16) {
-            //2025-08-13 08:00:00. Seconds is optional. Assume Central
-            if (value.length() == 16) {
-                value += ":00";
-            }
-            value = value.replace(' ', 'T');
-            return LocalDateTime.parse(value)
-                    .atZone(clockFunc.get().getZone());
-        } else if(value.contains("[")) {
-            // Allows for a complete string if you so desire.
-            //2025-08-13T08:00:00-05:00[America/Chicago]
-            return ZonedDateTime.parse(value);
-        } else {
-            // Allows for a complete string if you so desire.
-            // This one doesn't require the actual tzid.
-            //2025-08-13T08:00:00-05:00
-            return OffsetDateTime.parse(value).toZonedDateTime();
-        }
+        OVERRIDES.put("AKDT", ZoneId.of("America/Anchorage"));
+        OVERRIDES.put("HDT", ZoneId.of("Pacific/Honolulu"));
     }
 
     /**
      * Parse a timezone in a few different formats:
      * - Any tzid is supported, i.e. America/Chicago
+     * - timezones of NST, NDT, or NT all map to America/St_Johns
+     * - timezones of AST, ADT, or AT all map to America/Halifax
      * - timezones of EST, EDT, or ET all map to America/New_York
      * - timezones of CST, CDT, or CT all map to America/Chicago
      * - timezones of MST, MDT, or MT all map to America/Denver
      * - timezones of PST, PDT, or PT all map to America/Los_Angeles
+     * - timezones of AKST, AKDT, or AKT all map to America/Anchorage
+     * - timezones of HST, HDT, or HT all map to Pacific/Honolulu
      * There is no enforcement of if you are using Standard or Daylight time correctly. Thus,
      * 8PM EST, 8PM EDT, and 8PM ET all refer to the same Instant, assuming they are all on the same date. This also
      * means that you should NOT use "MST" if your times should be relative to Arizona. Instead, use America/Phoenix.
@@ -159,17 +65,21 @@ public class DateUtil {
         return Objects.requireNonNullElseGet(OVERRIDES.get(value.toUpperCase()), () -> ZoneId.of(value));
     }
 
+    private static final Pattern TIME_PATTERN = Pattern.compile("\\d{1,4}");
+
     /**
-     * Parse a time object in a few different formats:
-     * - 8 PM
-     * - 8p
-     * - 8pm
-     * - 8:00pm
-     * - 8:00 PM
-     * - 8:00p
-     * - 20:00
-     * - 20
-     * All refer to 8pm. There is no parsing of seconds, since it is unnecessary for what I am using this for.
+     * Casually parse a time
+     * Whitespace and colons are removed. Of the remaining value:
+     * - If ends in PM or P (case-insensitive), the time is converted to PM (possible hours are 1-12)
+     * - If ends in AM or A (case-insensitive), the time is assumed as AM (possible hours are 1-12)
+     * - If neither are present, the time is assumed as 24 hour time (possible hours are 0-23)
+     * Once the suffix is removed, the remaining value is parsed thusly:
+     * - If 1 or 2 digits are present, it is assumed to be the hour, and minutes are 00.
+     * - If 3 digits are present, the first digit is assumed to be the hour, and the last two are the minutes.
+     * - If 4 digits are present, the first two digits are assumed to be the hour, and the last two are the minutes.
+     * - Any other number of digits throw an exception.
+     * If an illegal time is provided (unrecognized characters, or an impossible hour or minute), an exception is thrown.
+     * There is no parsing of seconds, since it is unnecessary for what I am using this for.
      * @param value The value to parse
      * @return The parsed time
      */
@@ -189,7 +99,7 @@ public class DateUtil {
 
         // 3PM or 3p -> 15:00:00
         // 15 -> 15:00:00
-        if (NumberUtils.isCreatable(value)) {
+        if (TIME_PATTERN.matcher(value).hasMatch()) {
             int hour, minute;
             if (value.length() <= 2) {
                 hour = timeType.normalizeHour(Integer.parseInt(value));
@@ -201,6 +111,7 @@ public class DateUtil {
                 hour = timeType.normalizeHour(Integer.parseInt(value.substring(0, 2)));
                 minute = Integer.parseInt(value.substring(2, 4));
             } else {
+                // cannot be reached, since the regex clamps on 1-4 digits.
                 throw new DateTimeException("Invalid time, can't be more than four numbers");
             }
             return LocalTime.of(hour, minute);
@@ -234,19 +145,23 @@ public class DateUtil {
 
     /**
      * Parse a timezone-less date casually
-     * Format can be in mm/dd, yy/mm/dd, or yyyy/mm/dd. Any non-number can
-     * be used in place of the /.
-     * If year is omitted, the nearest future year will be used. The system timezone
-     * will be used to determine the "present", and thus, the future. This is only a problem
-     * when the parsed date is very close to the actual date, and may result in the next year being
-     * used instead of the current.
-     * If a two-digit year is used, it is assumed to be relative to the year 2000.
+     * The value is split up to 3 times on any non-numerical values, and the results are parsed as so:
+     * - If 2 groups are present (i.e. 3/14), the year is deduced as best as possibly can. The current year will be used,
+     * unless that would result in a date in the past, whereupon next year is used instead.
+     * - If 3 groups are present and the last group is 2 digits (i.e 3/14/26), the year is assumed to be relative
+     * to 2000 (in this example, 26 becomes 2026).
+     * - If 3 groups are present and the last group is more than 2 digits (i.e. 3/14/2026), the year is read as-is.
+     * Any years not within 1 year of the current year will throw an exception.
+     * Note that the expected format is American-style (Month, Day, Year). Sorry World, I can't support them all
+     * unambiguously.
      * @param value The value to parse
      * @return The parsed date
      */
     public static LocalDate parseCasualDate(String value) {
         return parseCasualDate(value, Clock.systemDefaultZone());
     }
+
+    private static final Pattern NON_DIGITS = Pattern.compile("\\D+");
 
     /**
      * Parse a timezone-less date casually, using a provided clock for computations
@@ -261,39 +176,30 @@ public class DateUtil {
             return null;
         }
 
-        List<String> elements = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        for (char c : value.toCharArray()) {
-            if (Character.isDigit(c)) {
-                sb.append(c);
-            } else if (!sb.isEmpty()) {
-                elements.add(sb.toString());
-                sb.setLength(0);
-            }
-        }
-        if (!sb.isEmpty()) {
-            elements.add(sb.toString());
-        }
+        var elements = NON_DIGITS.split(value, 3);
 
         int year, month, day;
-        if (elements.size() == 2) {
+        if (elements.length == 2) {
             LocalDate now =  LocalDate.now(clock);
 
-            month = Integer.parseInt(elements.get(0));
-            day = Integer.parseInt(elements.get(1));
+            month = Integer.parseInt(elements[0]);
+            day = Integer.parseInt(elements[1]);
             year = now.getYear();
             var requestedMD = MonthDay.of(month, day);
             var nowMD = MonthDay.from(now);
             if (requestedMD.isBefore(nowMD)) {
                 year += 1;
             }
-        } else if (elements.size() == 3) {
-            year = Integer.parseInt(elements.get(0));
-            month = Integer.parseInt(elements.get(1));
-            day = Integer.parseInt(elements.get(2));
+        } else if (elements.length == 3) {
+            year = Integer.parseInt(elements[0]);
+            month = Integer.parseInt(elements[1]);
+            day = Integer.parseInt(elements[2]);
 
+            var currentYear = Year.now(clock);
             if (year < 100) {
                 year += 2000;
+            } else if (year < currentYear.getValue() - 1 || year > currentYear.getValue() + 1) {
+                throw new DateTimeException("Year should be two digits, or more than 1 year away");
             }
         } else {
             throw new DateTimeException("Supports MM/DD or YYYY/MM/DD");
@@ -399,6 +305,13 @@ public class DateUtil {
         }
     }
 
+    /**
+     * Parse a casual day of the week.
+     * Format can be either the full name of the day of the week, or a
+     * three-letter abbreviation of it. Value is case-insensitive.
+     * @param value The value to parse
+     * @return The parsed day of the week
+     */
     public static DayOfWeek parseCasualDayOfWeek(String value) {
         var asCaps = value.toUpperCase();
         DayOfWeek parse;
@@ -412,18 +325,6 @@ public class DateUtil {
 
     private static final DateTimeFormatter PRETTY
             = DateTimeFormatter.ofPattern("MMM dd");
-
-    /**
-     * Format a date in a nice way.
-     * Discord does not natively have a way to do this without resolving to a full timestamp, which is
-     * tricky when dealing with timezones. The format is "MMM dd", i.e. "Jul 3".
-     * @param date The date to format.
-     * @return The formatted date.
-     */
-    @Deprecated
-    public static String getPrettyDate(LocalDate date) {
-        return date.format(PRETTY);
-    }
 
     /**
      * Format a date in a nice way.

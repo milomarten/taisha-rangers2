@@ -54,12 +54,19 @@ public class FormatUtils {
      * Taking into account the user's timezones, the format displayed is:
      * [Hour]:[Minute] [AM/PM]
      * @param temporal The time object to use. Must support get(INSTANT_SECONDS)
-     * @return A string that represents a timestamp with the short date format
+     * @return A string that represents a timestamp with the short time format
      */
     public static String formatShortTime(TemporalAccessor temporal) {
         return "<t:" + temporal.getLong(ChronoField.INSTANT_SECONDS) + ":t>";
     }
 
+    /**
+     * Formats a time as a relative time
+     * Taking into account the user's timezones, the format is displayed using words
+     * relative to the current time: for instance, "5 days ago", "in 14 minutes", etc.
+     * @param temporal The time object to use. Must support get(INSTANT_SECONDS)
+     * @return A string that represents a timestamp with the relative time format
+     */
     public static String formatRelativeTime(TemporalAccessor temporal) {
         return "<t:" + temporal.getLong(ChronoField.INSTANT_SECONDS) + ":R>";
     }
