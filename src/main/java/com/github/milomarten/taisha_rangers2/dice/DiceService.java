@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.milomarten.taisha_rangers2.persistence.Persister;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.rng.UniformRandomProvider;
 import org.apache.commons.rng.simple.RandomSource;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ public class DiceService {
     public static final String DICE_KEY = "dice";
 
     private final Map<String, Dice> dice = new ConcurrentHashMap<>();
+    private final Map<String, UniformRandomProvider> randomness = new ConcurrentHashMap<>();
     private final Persister persister;
 
     @PostConstruct
@@ -30,17 +32,27 @@ public class DiceService {
                 .block();
     }
 
-
     public Dice getDice(String id) {
-        var diceToReturn = dice.computeIfAbsent(id, i -> Dice.random(RandomSource.MT.create()));
+        var diceToReturn = dice.computeIfAbsent(id, i -> {
+            var r = randomness.computeIfAbsent(id, j -> RandomSource.MT.create());
+            return Dice.random(r);
+        });
         persister.persist(DICE_KEY, dice).subscribe();
         return diceToReturn;
     }
 
+    public int rollDice(String id, int origin, int upperBound) {
+        return randomness.computeIfAbsent(id, j -> RandomSource.MT.create())
+                .nextInt(origin, upperBound);
+    }
+
     public DiceJailResult jail(String id) {
-        var newDice = Dice.random(RandomSource.MT.create());
         var oldDice = getDice(id);
+        var newRandomness = RandomSource.MT.create();
+        var newDice = Dice.random(newRandomness);
+
         dice.put(id, newDice);
+        randomness.put(id, newRandomness);
         persister.persist(DICE_KEY, dice).subscribe();
         return new DiceJailResult(oldDice, newDice);
     }

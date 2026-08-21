@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.function.IntBinaryOperator;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -21,13 +22,13 @@ public class ScarInitiativeCommand extends ScarCommand.ScarIdentityParameters {
                 .withParameterField("initiative", IntParameter.builder().minValue(0).build(), ScarInitiativeCommand::setInitiative);
     }
 
-    public CommandResponse run(FindPlayerService.PlayerContext playerContext, Dice dice) {
+    public CommandResponse run(FindPlayerService.PlayerContext playerContext, IntBinaryOperator roller) {
         List<String> rolls = new ArrayList<>();
         int score = 0;
         var rollsLeft = this.initiative + 1;
         while(rollsLeft > 0) {
             rollsLeft--;
-            var roll = dice.urp().nextInt(1, 21);
+            var roll = roller.applyAsInt(1, 21);
             rolls.add(String.valueOf(roll));
             score += roll;
         }

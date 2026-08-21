@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.IntBinaryOperator;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -35,13 +36,13 @@ public class ScarDotCommand extends ScarCommand.ScarIdentityParameters {
                 ;
     }
 
-    public CommandResponse run(FindPlayerService.PlayerContext playerContext, Dice dice) {
+    public CommandResponse run(FindPlayerService.PlayerContext playerContext, IntBinaryOperator roller) {
         List<String> rolls = new ArrayList<>();
         int score = 0;
         var rollsLeft = this.numDice;
         while(rollsLeft > 0) {
             rollsLeft--;
-            var roll = dice.urp().nextInt(1, 11);
+            var roll = roller.applyAsInt(1, 11);
             if (roll == 1) {
                 rolls.add(roll + "❌");
                 score -= 1;

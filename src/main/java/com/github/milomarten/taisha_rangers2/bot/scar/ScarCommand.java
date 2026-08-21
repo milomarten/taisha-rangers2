@@ -12,9 +12,7 @@ import discord4j.core.object.entity.User;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 @Component("scar")
 public class ScarCommand extends LocalizedSubCommandSpec {
@@ -38,12 +36,14 @@ public class ScarCommand extends LocalizedSubCommandSpec {
         };
     }
 
-    private <T extends ScarIdentityParameters> Function<T, CommandResponse> pullNameAndInvokeDice(TriFunction<T, FindPlayerService.PlayerContext, Dice, CommandResponse> func) {
+    private <T extends ScarIdentityParameters> Function<T, CommandResponse> pullNameAndInvokeDice(TriFunction<T, FindPlayerService.PlayerContext, IntBinaryOperator, CommandResponse> func) {
         return in -> {
             var findName = findPlayerService.findPlayerCharacterName(in.getUserId(), in.getChannelId())
                     .orElse(new FindPlayerService.PlayerContext(in.getUserId(), new PlayerIdentity(in.getUserName()), null));
-            var die = diceService.getDice(findName.user().asString());
-            return func.apply(in, findName, die);
+            IntBinaryOperator roller = (lower, upper) -> diceService.rollDice(
+                    findName.user().asString(), lower, upper
+            );
+            return func.apply(in, findName, roller);
         };
     }
 
