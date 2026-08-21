@@ -65,8 +65,6 @@ public class DateUtil {
         return Objects.requireNonNullElseGet(OVERRIDES.get(value.toUpperCase()), () -> ZoneId.of(value));
     }
 
-    private static final Pattern TIME_PATTERN = Pattern.compile("\\d{1,4}");
-
     /**
      * Casually parse a time
      * Whitespace and colons are ignored. Of the remaining value:
@@ -99,7 +97,7 @@ public class DateUtil {
 
         // 3PM or 3p -> 15:00:00
         // 15 -> 15:00:00
-        if (TIME_PATTERN.matcher(value).hasMatch()) {
+        if (value.chars().allMatch(i -> i >= '0' && i <= '9')) {
             int hour, minute;
             if (value.length() <= 2) {
                 if (timeType == TimeType.TWENTY_FOUR_HOUR_TIME) {
@@ -114,7 +112,6 @@ public class DateUtil {
                 hour = timeType.normalizeHour(Integer.parseInt(value.substring(0, 2)));
                 minute = Integer.parseInt(value.substring(2, 4));
             } else {
-                // cannot be reached, since the regex clamps on 1-4 digits.
                 throw new DateTimeException("Invalid time, can't be more than four numbers");
             }
             return LocalTime.of(hour, minute);
