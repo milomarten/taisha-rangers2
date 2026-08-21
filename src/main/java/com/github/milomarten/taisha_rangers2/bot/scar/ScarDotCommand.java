@@ -5,6 +5,7 @@ import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.parameters.ParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
+import com.github.milomarten.taisha_rangers2.dice.Dice;
 import discord4j.core.object.entity.User;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,8 +19,6 @@ import java.util.Random;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ScarDotCommand extends ScarCommand.ScarIdentityParameters {
-    private static final Random RANDOM = new Random();
-
     private int numDice;
     private int difficulty;
     private int explodeAt;
@@ -36,13 +35,13 @@ public class ScarDotCommand extends ScarCommand.ScarIdentityParameters {
                 ;
     }
 
-    public CommandResponse run(FindPlayerService.PlayerContext playerContext) {
+    public CommandResponse run(FindPlayerService.PlayerContext playerContext, Dice dice) {
         List<String> rolls = new ArrayList<>();
         int score = 0;
         var rollsLeft = this.numDice;
         while(rollsLeft > 0) {
             rollsLeft--;
-            var roll = RANDOM.nextInt(1, 11);
+            var roll = dice.urp().nextInt(1, 11);
             if (roll == 1) {
                 rolls.add(roll + "❌");
                 score -= 1;

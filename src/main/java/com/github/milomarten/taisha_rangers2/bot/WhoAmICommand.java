@@ -3,6 +3,7 @@ package com.github.milomarten.taisha_rangers2.bot;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizationFactory;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
+import com.github.milomarten.taisha_rangers2.dice.DiceService;
 import com.github.milomarten.taisha_rangers2.state.*;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
@@ -21,12 +22,15 @@ public class WhoAmICommand extends LocalizedCommandSpec<SessionIdentityParameter
     private final PlayerManager playerManager;
     private final PartyManager partyManager;
     private final NextSessionManager nextSessionManager;
+    private final DiceService diceService;
 
-    public WhoAmICommand(PlayerManager playerManager, PartyManager partyManager, NextSessionManager nextSessionManager) {
+    public WhoAmICommand(PlayerManager playerManager, PartyManager partyManager,
+                         NextSessionManager nextSessionManager, DiceService diceService) {
         super("whoami");
         this.playerManager = playerManager;
         this.partyManager = partyManager;
         this.nextSessionManager = nextSessionManager;
+        this.diceService = diceService;
 
         setParameterParser(SessionIdentityParameters.parser());
     }
@@ -43,6 +47,9 @@ public class WhoAmICommand extends LocalizedCommandSpec<SessionIdentityParameter
         }
 
         return localizationFactory.createComplexResponse((ms, locale) -> {
+            var dice = diceService.getDice(params.getUserId().asString()); // makes a dice if they didn't have one already
+            output.add("Currently wielding " + dice.asString(true) + "!");
+
             if (player.getUsualTimezone() != null) {
                 output.add("Your usual timezone is " + player.getUsualTimezone());
             }
