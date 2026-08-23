@@ -9,6 +9,7 @@ import org.apache.commons.rng.simple.RandomSource;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -18,7 +19,6 @@ public class DiceService {
     public static final String DICE_KEY = "dice";
 
     private final Map<String, Dice> dice = new ConcurrentHashMap<>();
-    private final Map<String, UniformRandomProvider> randomness = new ConcurrentHashMap<>();
     private final Persister persister;
 
     @PostConstruct
@@ -32,28 +32,29 @@ public class DiceService {
                 .block();
     }
 
-    public Dice getDice(String id) {
-        var diceToReturn = dice.computeIfAbsent(id, i -> {
-            var r = randomness.computeIfAbsent(id, j -> RandomSource.MT.create());
-            return Dice.random(r);
-        });
+    private void persist() {
         persister.persist(DICE_KEY, dice).subscribe();
+    }
+
+    public Dice getDice(String id) {
+        var diceToReturn = _getDice(id);
+        persist();
         return diceToReturn;
     }
 
+    private Dice _getDice(String id) {
+        return dice.computeIfAbsent(id, i -> Dice.random());
+    }
+
     public int rollDice(String id, int origin, int upperBound) {
-        return randomness.computeIfAbsent(id, j -> RandomSource.MT.create())
-                .nextInt(origin, upperBound);
+        return _getDice(id).urp.nextInt(origin, upperBound);
     }
 
     public DiceJailResult jail(String id) {
-        var oldDice = getDice(id);
-        var newRandomness = RandomSource.MT.create();
-        var newDice = Dice.random(newRandomness);
+        var newDice = Dice.random();
+        var oldDice = Objects.requireNonNullElseGet(dice.put(id, newDice), Dice::random);
 
-        dice.put(id, newDice);
-        randomness.put(id, newRandomness);
-        persister.persist(DICE_KEY, dice).subscribe();
+        persist();
         return new DiceJailResult(oldDice, newDice);
     }
 

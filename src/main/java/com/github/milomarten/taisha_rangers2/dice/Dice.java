@@ -1,14 +1,24 @@
 package com.github.milomarten.taisha_rangers2.dice;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 import org.apache.commons.rng.UniformRandomProvider;
+import org.apache.commons.rng.simple.RandomSource;
 
-public record Dice(Gem gem, Rarity rarity, Size size) {
-    public static Dice random(UniformRandomProvider urp) {
-        var rGem = random(Gem.values(), urp);
-        var rRarity = random(Rarity.values(), urp);
-        var rSize = random(Size.values(), urp);
+@Data
+public class Dice {
+    Gem gem;
+    Rarity rarity;
+    Size size;
+    @JsonIgnore UniformRandomProvider urp = RandomSource.MT.create();
 
-        return new Dice(rGem, rRarity, rSize);
+    public static Dice random() {
+        var dice = new Dice();
+        dice.gem = random(Gem.values(), dice.urp);
+        dice.rarity = random(Rarity.values(), dice.urp);
+        dice.size = random(Size.values(), dice.urp);
+
+        return dice;
     }
 
     private static <T> T random(T[] arr, UniformRandomProvider urp) {
