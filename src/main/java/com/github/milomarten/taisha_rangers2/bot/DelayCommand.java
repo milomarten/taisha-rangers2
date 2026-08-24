@@ -6,6 +6,7 @@ import com.github.milomarten.taisha_rangers2.state.NextSession;
 import com.github.milomarten.taisha_rangers2.state.PlayerResponse;
 import com.github.milomarten.taisha_rangers2.util.DateUtil;
 import com.github.milomarten.taisha_rangers2.util.FormatUtils;
+import discord4j.rest.util.AllowedMentions;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -29,7 +30,8 @@ public class DelayCommand extends AbstractSessionAdminCommand<SessionIdentityPar
             session.setStartTime(session.getStartTime().plus(duration));
             return localizationFactory.createResponse("command.delay.response.start",
                     FormatUtils.pingRole(session.getPing()),
-                    FormatUtils.formatShortDateTime(session.getStartTime()));
+                    FormatUtils.formatShortDateTime(session.getStartTime()))
+                    .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
         } else {
             var alreadyResponded = session.getHydratedPlayerResponses()
                     .filter(pr -> pr.getState() != PlayerResponse.State.NO_RESPONSE)
@@ -41,13 +43,15 @@ public class DelayCommand extends AbstractSessionAdminCommand<SessionIdentityPar
                 return localizationFactory.createResponse("command.delay.response.proposed-start.nobody",
                         FormatUtils.pingRole(session.getPing()),
                         FormatUtils.formatShortDateTime(session.getProposedStartTime())
-                );
+                )
+                        .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
             } else {
                 return localizationFactory.createResponse("command.delay.response.proposed-start.somebody",
                         FormatUtils.pingRole(session.getPing()),
                         FormatUtils.formatShortDateTime(session.getProposedStartTime()),
                         String.join(", ", alreadyResponded)
-                );
+                )
+                        .allowedMentions(AllowedMentions.builder().allowRole(session.getPing()).build());
             }
         }
     }
