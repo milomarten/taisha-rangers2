@@ -20,6 +20,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component("roll")
 public class RollCommand extends LocalizedCommandSpec<RollCommand.Parameters> {
     private final FindPlayerService findPlayerService;
@@ -71,9 +73,15 @@ public class RollCommand extends LocalizedCommandSpec<RollCommand.Parameters> {
                     firstLine += " [" + params.comment + "]";
                 }
 
-                var work = String.join("\n- ", formatted);
+                String work;
                 if (roll.value().isNumber()) {
-                    work += "\n **= " + roll.value().asInteger(ctx) + "**";
+                    var finalResult = Integer.toString(roll.value().asInteger(ctx));
+                    if (Objects.equals(finalResult, formatted.getLast())) {
+                        formatted.removeLast();
+                    }
+                    work = String.join("\n⤷ ", formatted) + "\n **= " + finalResult + "**";
+                } else {
+                    work = String.join("\n⤷ ", formatted);
                 }
 
                 return params.mode
