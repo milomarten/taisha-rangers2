@@ -8,6 +8,7 @@ import com.github.milomarten.evaluator.ExpressionSyntaxError;
 import com.github.milomarten.formatting.ExpressionFormatter;
 import com.github.milomarten.formatting.LineByLineFormatter;
 import com.github.milomarten.parsing.StringExpressionEvaluator;
+import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.EnumParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
@@ -20,7 +21,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 @Component("roll")
-public class RollCommand extends AbstractSessionCommand<RollCommand.Parameters> {
+public class RollCommand extends LocalizedCommandSpec<RollCommand.Parameters> {
     private final FindPlayerService findPlayerService;
     private final DiceService diceService;
 
@@ -43,7 +44,7 @@ public class RollCommand extends AbstractSessionCommand<RollCommand.Parameters> 
 
 
     @Override
-    protected CommandResponse doAction(Parameters params, NextSession session) {
+    protected CommandResponse doAction(Parameters params) {
         var dice = diceService.getDice(params.getUserId().asString());
         var roller = findPlayerService.findPlayerCharacterName(params.getUserId(), params.getChannelId());
 
