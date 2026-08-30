@@ -1,4 +1,4 @@
-package com.github.milomarten.taisha_rangers2.bot.scar;
+package com.github.milomarten.taisha_rangers2.util;
 
 import com.github.milomarten.taisha_rangers2.state.NextSessionManager;
 import com.github.milomarten.taisha_rangers2.state.Party;

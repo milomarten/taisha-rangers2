@@ -71,7 +71,7 @@ public class LocalizationFactory implements Localizer {
      * @param resolver A function which takes the MessageSource and Locale, to output a response message
      * @return A reply which will invoke the resolver to get the message.
      */
-    public LocalizedDynamicReplyResponse createComplexResponse(BiFunction<MessageSource, Locale, ReplyResponse> resolver) {
+    public LocalizedDynamicReplyResponse createComplexResponse(BiFunction<MessageSource, Locale, ? extends CommandResponse> resolver) {
         return new LocalizedDynamicReplyResponse(this.messageSource, resolver);
     }
 
@@ -109,9 +109,9 @@ public class LocalizationFactory implements Localizer {
 
     public static class LocalizedDynamicReplyResponse implements CommandResponse {
         private final MessageSource messageSource;
-        private final BiFunction<MessageSource, Locale, ReplyResponse> func;
+        private final BiFunction<MessageSource, Locale, ? extends CommandResponse> func;
 
-        private LocalizedDynamicReplyResponse(MessageSource messageSource, BiFunction<MessageSource, Locale, ReplyResponse> func) {
+        private LocalizedDynamicReplyResponse(MessageSource messageSource, BiFunction<MessageSource, Locale, ? extends CommandResponse> func) {
             this.messageSource = messageSource;
             this.func = func;
         }
@@ -123,7 +123,11 @@ public class LocalizationFactory implements Localizer {
         }
 
         public ReplyResponse resolve(Locale locale) {
-            return func.apply(this.messageSource, locale);
+            var f = func.apply(this.messageSource, locale);
+            if (f instanceof ReplyResponse rr) {
+                return rr;
+            }
+            throw new IllegalArgumentException("LocalizedDynamicReplyResponse tried to resolve something that wasn't a Reply");
         }
     }
 }

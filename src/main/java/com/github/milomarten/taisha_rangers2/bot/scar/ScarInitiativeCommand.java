@@ -3,13 +3,12 @@ package com.github.milomarten.taisha_rangers2.bot.scar;
 import com.github.milomarten.taisha_rangers2.command.parameter.IntParameter;
 import com.github.milomarten.taisha_rangers2.command.parameters.ParameterParser;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
-import com.github.milomarten.taisha_rangers2.dice.Dice;
+import com.github.milomarten.taisha_rangers2.util.FindPlayerService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.function.IntBinaryOperator;
 
 @Data

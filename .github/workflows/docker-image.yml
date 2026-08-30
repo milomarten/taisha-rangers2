@@ -24,6 +24,9 @@ jobs:
 
     - name: Execute Gradle build
       run: ./gradlew build -Ptr2Version=${{ github.ref_name }}
+      env:
+        GITHUB_USERNAME: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
     - name: Build and Push to Docker
       run: |
