@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'de.undercouch.download' version '5.7.0'
 }
 
 group = 'com.github.milomarten'
@@ -24,8 +25,8 @@ repositories {
 	maven {
 		url = uri("https://maven.pkg.github.com/milomarten/diceroll")
 		credentials {
-			username = System.getenv("GITHUB_USERNAME")
-			password = System.getenv("GITHUB_TOKEN")
+			username = project.findProperty("GITHUB_USERNAME") ?: System.getenv("GITHUB_USERNAME")
+			password = project.findProperty("GITHUB_TOKEN") ?: System.getenv("GITHUB_TOKEN")
 		}
 	}
 }
@@ -40,7 +41,9 @@ dependencies {
 	implementation 'org.apache.commons:commons-text:1.11.0'
 	implementation 'org.apache.commons:commons-rng-simple:1.7'
 
-	implementation 'com.github.milomarten:diceroll:0.2.2'
+	implementation 'com.opencsv:opencsv:5.12.0'
+
+	implementation 'com.github.milomarten:diceroll:0.2.3'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -55,6 +58,19 @@ tasks.named('test') {
 
 tasks.named('jar') {
     enabled = false
+}
+
+tasks.register('downloadPokemonData', Download) {
+	src([
+		"https://raw.githubusercontent.com/PokeAPI/pokeapi/refs/heads/master/data/v2/csv/pokemon_species.csv",
+		"https://raw.githubusercontent.com/PokeAPI/pokeapi/refs/heads/master/data/v2/csv/pokemon_species_names.csv",
+		"https://raw.githubusercontent.com/PokeAPI/pokeapi/refs/heads/master/data/v2/csv/pokemon_types.csv",
+		"https://raw.githubusercontent.com/PokeAPI/pokeapi/refs/heads/master/data/v2/csv/type_names.csv",
+		"https://raw.githubusercontent.com/PokeAPI/pokeapi/refs/heads/master/data/v2/csv/pokemon_abilities.csv",
+		"https://raw.githubusercontent.com/PokeAPI/pokeapi/refs/heads/master/data/v2/csv/abilities.csv",
+		"https://raw.githubusercontent.com/PokeAPI/pokeapi/refs/heads/master/data/v2/csv/ability_names.csv"
+	])
+	dest layout.projectDirectory.dir("/src/main/resources/pkmn")
 }
 
 bootJar {
