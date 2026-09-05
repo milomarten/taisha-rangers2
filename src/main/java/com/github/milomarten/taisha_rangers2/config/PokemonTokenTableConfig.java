@@ -1,20 +1,24 @@
-package com.github.milomarten.taisha_rangers2.pokemon;
+package com.github.milomarten.taisha_rangers2.config;
 
 import com.github.milomarten.dice.term.DiceMathTerm;
 import com.github.milomarten.dice.term.StringTerm;
 import com.github.milomarten.table.RandomlySelected;
 import com.github.milomarten.table.UnweightedTable;
+import com.github.milomarten.table.WeightedTable;
+import com.github.milomarten.taisha_rangers2.pokemon.Name;
+import com.github.milomarten.taisha_rangers2.pokemon.PokemonSpecies;
 import lombok.Data;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Configuration
 public class PokemonTokenTableConfig {
-    public static final String PREFIX = "RS_";
+    public static final String PREFIX = "";
 
     private Map<Integer, String> getEnglishNameLookup(List<Name> names) {
         return names.stream()
@@ -79,6 +83,36 @@ public class PokemonTokenTableConfig {
         private final PokemonSpecies self;
         private PokemonSpecies preEvolution;
         private List<PokemonSpecies> evolutions = new ArrayList<>();
+    }
+
+    @Bean(name = PREFIX + "wpokemon")
+    public RandomlySelected<DiceMathTerm> randomWeightedPokemon(List<Evolution> species, Map<Integer, String> pokemonEnglishNameLookup) {
+        var candidates = species.stream()
+                .filter(s -> !s.self.isLegendary() && !s.self.isMythical())
+                .collect(Collectors.groupingBy(
+                        e -> {
+                            if (e.preEvolution == null && e.evolutions.isEmpty()) {
+                                return "IMMUTE";
+                            } else if (e.preEvolution != null && e.evolutions.isEmpty()) {
+                                return "LAST_EVOLUTION";
+                            } else if (e.preEvolution == null) {
+                                return "FIRST_EVOLUTION";
+                            } else {
+                                return "MIDDLE_EVOLUTION";
+                            }
+                        }
+                ));
+
+        var weighted = new WeightedTable<DiceMathTerm>();
+        candidates.get("FIRST_EVOLUTION").forEach(e ->
+                weighted.addEntry(3, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
+        candidates.get("MIDDLE_EVOLUTION").forEach(e ->
+                weighted.addEntry(2, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
+        candidates.get("LAST_EVOLUTION").forEach(e ->
+                weighted.addEntry(1, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
+        candidates.get("IMMUTE").forEach(e ->
+                weighted.addEntry(1, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
+        return weighted;
     }
 
     @Bean(name = PREFIX + "immute")

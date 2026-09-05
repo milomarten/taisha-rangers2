@@ -2,22 +2,26 @@ package com.github.milomarten.taisha_rangers2.bot;
 
 import com.github.milomarten.dice.DiceExpressionParser;
 import com.github.milomarten.dice.DiceResultFormatter;
+import com.github.milomarten.dice.TokenTable;
 import com.github.milomarten.dice.term.DiceMathTerm;
+import com.github.milomarten.dice.term.StringTerm;
 import com.github.milomarten.evaluator.EvaluatorOptions;
 import com.github.milomarten.evaluator.ExpressionSyntaxError;
 import com.github.milomarten.formatting.ExpressionFormatter;
 import com.github.milomarten.formatting.LineByLineFormatter;
 import com.github.milomarten.parsing.StringExpressionEvaluator;
+import com.github.milomarten.table.UnweightedTable;
 import com.github.milomarten.taisha_rangers2.command.localization.LocalizedCommandSpec;
 import com.github.milomarten.taisha_rangers2.command.parameter.EnumParameter;
 import com.github.milomarten.taisha_rangers2.command.parameter.StringParameter;
 import com.github.milomarten.taisha_rangers2.command.response.CommandResponse;
 import com.github.milomarten.taisha_rangers2.dice.DiceService;
-import com.github.milomarten.taisha_rangers2.state.NextSession;
+import com.github.milomarten.taisha_rangers2.pokemon.TokenTableService;
 import com.github.milomarten.taisha_rangers2.util.FindPlayerService;
 import com.github.milomarten.taisha_rangers2.util.ResponseMode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.rng.UniformRandomProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -26,16 +30,21 @@ import java.util.Objects;
 public class RollCommand extends LocalizedCommandSpec<RollCommand.Parameters> {
     private final FindPlayerService findPlayerService;
     private final DiceService diceService;
+    private final TokenTableService tokenTableService;
 
     private final StringExpressionEvaluator<DiceMathTerm> EVALUATOR =
             new StringExpressionEvaluator<>(new DiceExpressionParser());
     private final ExpressionFormatter<DiceMathTerm> FORMATTER =
             new DiceResultFormatter();
 
-    public RollCommand(FindPlayerService findPlayerService, DiceService diceService) {
+    public RollCommand(
+            FindPlayerService findPlayerService,
+            DiceService diceService,
+            TokenTableService tokenTableService) {
         super("roll");
         this.findPlayerService = findPlayerService;
         this.diceService = diceService;
+        this.tokenTableService = tokenTableService;
 
         setParameterParser(Parameters.parser(Parameters::new)
                 .withParameterField("expression", StringParameter.REQUIRED, Parameters::setExpression)
@@ -55,12 +64,23 @@ public class RollCommand extends LocalizedCommandSpec<RollCommand.Parameters> {
                     .ephemeral(true);
         }
 
+        TokenTable tokens = null;
+        if (params.expression.contains("@")) {
+            if (roller.isEmpty()) {
+                tokens = tokenTableService.getTokenTable(dice.getUrp());
+            } else {
+                tokens = new TokenTable(tokenTableService.getTokenTable(dice.getUrp()));
+                addPartyInfo(tokens, roller.get(), dice.getUrp());
+            }
+        }
+
         var rollerName = roller
                 .map(p -> p.identity().getName())
                 .orElseGet(params::getUsername);
 
         var ctx = EvaluatorOptions.builder()
                 .randomSource(dice.getUrp())
+                .tokenResolver(tokens)
                 .build();
 
         try {
@@ -91,6 +111,14 @@ public class RollCommand extends LocalizedCommandSpec<RollCommand.Parameters> {
         } catch (ExpressionSyntaxError ex) {
             return CommandResponse.reply(ex.getMessage(), true);
         }
+    }
+
+    public void addPartyInfo(TokenTable table, FindPlayerService.PlayerContext context, UniformRandomProvider urp) {
+        var players = new UnweightedTable<DiceMathTerm>();
+        context.party().getPlayerIdentities()
+                .values()
+                .forEach(pi -> players.addEntry(new StringTerm(pi.getName())));
+        table.addRandomlySelected("player", players, urp);
     }
 
     @Data
