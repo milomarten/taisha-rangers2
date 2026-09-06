@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,8 +68,8 @@ public class PokemonTokenTableConfig {
             if (s.self.getEvolvesFromSpeciesId() != null) {
                 var preEvolution = evolutions.get(s.self.getEvolvesFromSpeciesId());
                 if (preEvolution != null) {
-                    s.preEvolution = preEvolution.self;
-                    preEvolution.evolutions.add(s.self);
+                    s.preEvolution = preEvolution;
+                    preEvolution.evolutions.add(s);
                 }
             }
         }
@@ -81,45 +80,54 @@ public class PokemonTokenTableConfig {
     @Data
     public static class Evolution {
         private final PokemonSpecies self;
-        private PokemonSpecies preEvolution;
-        private List<PokemonSpecies> evolutions = new ArrayList<>();
+        private Evolution preEvolution;
+        private List<Evolution> evolutions = new ArrayList<>();
+
+        public int stage() {
+            if (preEvolution == null) {
+                return 1;
+            } else {
+                return preEvolution.stage() + 1;
+            }
+        }
+
+        public boolean hasPreEvolution() {
+            return preEvolution != null;
+        }
+
+        public boolean hasEvolution() {
+            return !evolutions.isEmpty();
+        }
+
+        public boolean isImmute() {
+            return !hasPreEvolution() && !hasEvolution();
+        }
+
+        public boolean isLegendaryOrMythical() {
+            return self.isMythical() || self.isLegendary();
+        }
     }
 
     @Bean(name = PREFIX + "wpokemon")
     public RandomlySelected<DiceMathTerm> randomWeightedPokemon(List<Evolution> species, Map<Integer, String> pokemonEnglishNameLookup) {
-        var candidates = species.stream()
-                .filter(s -> !s.self.isLegendary() && !s.self.isMythical())
-                .collect(Collectors.groupingBy(
-                        e -> {
-                            if (e.preEvolution == null && e.evolutions.isEmpty()) {
-                                return "IMMUTE";
-                            } else if (e.preEvolution != null && e.evolutions.isEmpty()) {
-                                return "LAST_EVOLUTION";
-                            } else if (e.preEvolution == null) {
-                                return "FIRST_EVOLUTION";
-                            } else {
-                                return "MIDDLE_EVOLUTION";
-                            }
-                        }
-                ));
-
         var weighted = new WeightedTable<DiceMathTerm>();
-        candidates.get("FIRST_EVOLUTION").forEach(e ->
-                weighted.addEntry(3, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
-        candidates.get("MIDDLE_EVOLUTION").forEach(e ->
-                weighted.addEntry(2, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
-        candidates.get("LAST_EVOLUTION").forEach(e ->
-                weighted.addEntry(1, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
-        candidates.get("IMMUTE").forEach(e ->
-                weighted.addEntry(1, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId()))));
+        species.stream()
+            .filter(s -> !s.isLegendaryOrMythical())
+            .forEach(e -> {
+                if (e.isImmute()) {
+                    weighted.addEntry(1, new StringTerm(pokemonEnglishNameLookup.get(e.self.getId())));
+                } else {
+                    weighted.addEntry(4 - e.stage(), new StringTerm(pokemonEnglishNameLookup.get(e.self.getId())));
+                }
+            });
         return weighted;
     }
 
     @Bean(name = PREFIX + "immute")
     public RandomlySelected<DiceMathTerm> randomImmute(List<Evolution> species, Map<Integer, String> pokemonEnglishNameLookup) {
         var candidates = species.stream()
-                .filter(s -> !s.self.isLegendary() && !s.self.isMythical())
-                .filter(s -> s.preEvolution == null && s.evolutions.isEmpty())
+                .filter(s -> !s.isLegendaryOrMythical())
+                .filter(Evolution::isImmute)
                 .map(s -> pokemonEnglishNameLookup.get(s.self.getId()))
                 .filter(Objects::nonNull);
         return wrap(candidates);
@@ -128,8 +136,8 @@ public class PokemonTokenTableConfig {
     @Bean(name = PREFIX + "nfe")
     public RandomlySelected<DiceMathTerm> randomNotFullyEvolved(List<Evolution> species, Map<Integer, String> pokemonEnglishNameLookup) {
         var candidates = species.stream()
-                .filter(s -> !s.self.isLegendary() && !s.self.isMythical())
-                .filter(s -> !s.evolutions.isEmpty())
+                .filter(s -> !s.isLegendaryOrMythical())
+                .filter(Evolution::hasEvolution)
                 .map(s -> pokemonEnglishNameLookup.get(s.self.getId()))
                 .filter(Objects::nonNull);
         return wrap(candidates);
@@ -138,8 +146,8 @@ public class PokemonTokenTableConfig {
     @Bean(name = PREFIX + "fe")
     public RandomlySelected<DiceMathTerm> randomFullyEvolved(List<Evolution> species, Map<Integer, String> pokemonEnglishNameLookup) {
         var candidates = species.stream()
-                .filter(s -> !s.self.isLegendary() && !s.self.isMythical())
-                .filter(s -> s.preEvolution != null && s.evolutions.isEmpty())
+                .filter(s -> !s.isLegendaryOrMythical())
+                .filter(s -> s.hasPreEvolution() && !s.hasEvolution())
                 .map(s -> pokemonEnglishNameLookup.get(s.self.getId()))
                 .filter(Objects::nonNull);
         return wrap(candidates);
@@ -148,8 +156,8 @@ public class PokemonTokenTableConfig {
     @Bean(name = PREFIX + "me")
     public RandomlySelected<DiceMathTerm> randomMiddleEvolved(List<Evolution> species, Map<Integer, String> pokemonEnglishNameLookup) {
         var candidates = species.stream()
-                .filter(s -> !s.self.isLegendary() && !s.self.isMythical())
-                .filter(s -> s.preEvolution != null && !s.evolutions.isEmpty())
+                .filter(s -> !s.isLegendaryOrMythical())
+                .filter(s -> s.hasPreEvolution() && s.hasEvolution())
                 .map(s -> pokemonEnglishNameLookup.get(s.self.getId()))
                 .filter(Objects::nonNull);
         return wrap(candidates);
@@ -158,8 +166,8 @@ public class PokemonTokenTableConfig {
     @Bean(name = PREFIX + "ue")
     public RandomlySelected<DiceMathTerm> randomUnevolved(List<Evolution> species, Map<Integer, String> pokemonEnglishNameLookup) {
         var candidates = species.stream()
-                .filter(s -> !s.self.isLegendary() && !s.self.isMythical())
-                .filter(s -> s.preEvolution == null && !s.evolutions.isEmpty())
+                .filter(s -> !s.isLegendaryOrMythical())
+                .filter(s -> !s.hasPreEvolution() && s.hasEvolution())
                 .map(s -> pokemonEnglishNameLookup.get(s.self.getId()))
                 .filter(Objects::nonNull);
         return wrap(candidates);
